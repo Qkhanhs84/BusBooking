@@ -1,0 +1,136 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}Hải Hoàng Gia - Đặt vé xe khách online{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="bg-gradient-to-r from-blue-500 to-blue-700 py-12">
+    <div class="container mx-auto px-4">
+        <div class="max-w-4xl mx-auto text-center text-white">
+            <h1 class="text-3xl md:text-4xl font-bold mb-4">Book Bus Tickets Online</h1>
+            <p class="text-lg mb-8">Fast, secure, and convenient way to book your journey</p>
+        </div>
+    </div>
+</div>
+
+<!-- Search Box -->
+<div class="container mx-auto px-4 -mt-6">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">Tìm kiếm vé xe</h2>
+            <form action="{% url 'search' %}" method="get">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Điểm đi</label>
+                        <select 
+                            name="from"
+                            class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                            required
+                        >
+                            <option value="Nghe An">Nghệ An</option>
+                            <option value="Ha Noi">Hà Nội</option>
+                            <option value="Da Nang">Đà Nẵng</option>
+                            <option value="Ho Chi Minh">Hồ Chí Minh</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Điểm đến</label>
+                        <select 
+                            name="to"
+                            class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                            required
+                        >
+                            <option value="">Chọn điểm đến</option>
+                            <option value="Quang Binh">Quảng Bình</option>
+                            <option value="Ha Noi">Hà Nội</option>
+                            <option value="Da Nang">Đà Nẵng</option>
+                            <option value="Ho Chi Minh">Hồ Chí Minh</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Ngày đi</label>
+                        <div class="relative">
+                            <input 
+                                type="text" 
+                                name="date"
+                                class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 pl-10"
+                                value="01-03-2025"
+                                placeholder="DD-MM-YYYY"
+                                required
+                            />
+                            <i class="fas fa-calendar absolute left-3 top-2.5 h-5 w-5 text-gray-400"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-end">
+                        <button 
+                            type="submit" 
+                            class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center"
+                        >
+                            <i class="fas fa-search w-5 h-5 mr-2"></i>
+                            Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Popular Routes -->
+<div class="container mx-auto px-4 py-12">
+    <h2 class="text-2xl font-bold mb-6 text-center">Popular Routes</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {% for route in popular_routes %}
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="h-40 bg-gray-200 relative flex items-center justify-center">
+                <span class="text-2xl font-bold text-gray-500">{{ route.from }} - {{ route.to }}</span>
+            </div>
+            <div class="p-4">
+                <h3 class="font-bold text-lg">{{ route.from }} to {{ route.to }}</h3>
+                <p class="text-gray-600 mb-3">Starting from {{ route.price }}</p>
+                <a 
+                    href="{% url 'search' %}?from={{ route.from }}&to={{ route.to }}&date=01-03-2025"
+                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors inline-block"
+                >
+                    View Schedules
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Why Choose Us -->
+<div class="bg-gray-100 py-12">
+    <div class="container mx-auto px-4">
+        <h2 class="text-2xl font-bold mb-8 text-center">Why Choose Us</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-search w-8 h-8 text-blue-600"></i>
+                </div>
+                <h3 class="font-bold text-lg mb-2">Easy Booking</h3>
+                <p class="text-gray-600">Book your tickets in just a few clicks</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-lock w-8 h-8 text-blue-600"></i>
+                </div>
+                <h3 class="font-bold text-lg mb-2">Secure Payments</h3>
+                <p class="text-gray-600">Multiple payment options with secure transactions</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-headset w-8 h-8 text-blue-600"></i>
+                </div>
+                <h3 class="font-bold text-lg mb-2">24/7 Support</h3>
+                <p class="text-gray-600">Customer support available round the clock</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

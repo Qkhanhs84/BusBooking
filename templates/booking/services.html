@@ -1,0 +1,155 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}Dịch vụ - Hải Hoàng Gia{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8 text-center">Dịch vụ</h1>
+    
+    <div class="mb-12">
+        <h2 class="text-2xl font-bold mb-6">Dịch vụ vận chuyển hành khách</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-bold mb-4 text-blue-600">Vận chuyển hành khách đường dài</h3>
+                <p class="mb-4">
+                    Hải Hoàng Gia cung cấp dịch vụ vận chuyển hành khách đường dài với đội xe giường nằm 
+                    chất lượng cao, đảm bảo sự thoải mái và an toàn cho hành khách trong suốt hành trình.
+                </p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>Xe giường nằm cao cấp, ghế ngồi rộng rãi</li>
+                    <li>Điều hòa nhiệt độ</li>
+                    <li>Nước uống, khăn lạnh miễn phí</li>
+                    <li>Wifi miễn phí</li>
+                    <li>Nhân viên phục vụ tận tình</li>
+                </ul>
+            </div>
+            <div class="h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+                <span class="text-2xl font-bold text-gray-500">Hình ảnh xe khách</span>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-bus h-8 w-8 text-blue-600"></i>
+                </div>
+                <h3 class="font-bold text-lg mb-2 text-center">Tuyến cố định</h3>
+                <p class="text-gray-600">
+                    Chúng tôi vận hành các tuyến cố định từ Nghệ An đi các tỉnh thành trong cả nước 
+                    với lịch trình đều đặn, đảm bảo đúng giờ.
+                </p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-users h-8 w-8 text-blue-600"></i>
+                </div>
+                <h3 class="font-bold text-lg mb-2 text-center">Thuê xe theo đoàn</h3>
+                <p class="text-gray-600">
+                    Dịch vụ thuê xe theo đoàn phục vụ các chuyến du lịch, hội nghị, sự kiện với 
+                    đội xe đa dạng từ 16 đến 45 chỗ.
+                </p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-box h-8 w-8 text-blue-600"></i>
+                </div>
+                <h3 class="font-bold text-lg mb-2 text-center">Vận chuyển hàng hóa</h3>
+                <p class="text-gray-600">
+                    Cung cấp dịch vụ vận chuyển hàng hóa đi kèm với vận chuyển hành khách, 
+                    đảm bảo hàng hóa được giao nhận an toàn, đúng hẹn.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mb-12">
+        <h2 class="text-2xl font-bold mb-6">Bảng giá dịch vụ</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white rounded-lg overflow-hidden shadow-md">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="py-3 px-4 text-left">Tuyến đường</th>
+                        <th class="py-3 px-4 text-left">Loại xe</th>
+                        <th class="py-3 px-4 text-left">Giá vé</th>
+                        <th class="py-3 px-4 text-left">Thời gian</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    <tr>
+                        <td class="py-3 px-4">Nghệ An - Quảng Bình</td>
+                        <td class="py-3 px-4">Giường nằm</td>
+                        <td class="py-3 px-4">200,000 VND</td>
+                        <td class="py-3 px-4">6 giờ</td>
+                    </tr>
+                    <tr>
+                        <td class="py-3 px-4">Nghệ An - Quảng Bình</td>
+                        <td class="py-3 px-4">Giường nằm cao cấp</td>
+                        <td class="py-3 px-4">250,000 VND</td>
+                        <td class="py-3 px-4">6 giờ</td>
+                    </tr>
+                    <tr>
+                        <td class="py-3 px-4">Nghệ An - Hà Nội</td>
+                        <td class="py-3 px-4">Giường nằm</td>
+                        <td class="py-3 px-4">250,000 VND</td>
+                        <td class="py-3 px-4">5 giờ</td>
+                    </tr>
+                    <tr>
+                        <td class="py-3 px-4">Nghệ An - Hà Nội</td>
+                        <td class="py-3 px-4">Giường nằm cao cấp</td>
+                        <td class="py-3 px-4">300,000 VND</td>
+                        <td class="py-3 px-4">5 giờ</td>
+                    </tr>
+                    <tr>
+                        <td class="py-3 px-4">Nghệ An - Đà Nẵng</td>
+                        <td class="py-3 px-4">Giường nằm</td>
+                        <td class="py-3 px-4">300,000 VND</td>
+                        <td class="py-3 px-4">8 giờ</td>
+                    </tr>
+                    <tr>
+                        <td class="py-3 px-4">Nghệ An - Hồ Chí Minh</td>
+                        <td class="py-3 px-4">Giường nằm cao cấp</td>
+                        <td class="py-3 px-4">500,000 VND</td>
+                        <td class="py-3 px-4">20 giờ</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="text-sm text-gray-600 mt-2">* Giá vé có thể thay đổi theo thời điểm. Vui lòng liên hệ hotline để biết giá chính xác.</p>
+    </div>
+    
+    <div>
+        <h2 class="text-2xl font-bold mb-6">Quy trình đặt vé</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl font-bold text-blue-600">1</span>
+                </div>
+                <h3 class="font-bold text-lg mb-2">Tìm kiếm chuyến xe</h3>
+                <p class="text-gray-600">Chọn điểm đi, điểm đến và ngày đi để tìm kiếm các chuyến xe phù hợp</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl font-bold text-blue-600">2</span>
+                </div>
+                <h3 class="font-bold text-lg mb-2">Chọn chuyến và ghế</h3>
+                <p class="text-gray-600">Chọn chuyến xe phù hợp và vị trí ghế mong muốn</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl font-bold text-blue-600">3</span>
+                </div>
+                <h3 class="font-bold text-lg mb-2">Nhập thông tin</h3>
+                <p class="text-gray-600">Điền thông tin cá nhân và chọn phương thức thanh toán</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-2xl font-bold text-blue-600">4</span>
+                </div>
+                <h3 class="font-bold text-lg mb-2">Xác nhận và thanh toán</h3>
+                <p class="text-gray-600">Xác nhận thông tin đặt vé và hoàn tất thanh toán</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

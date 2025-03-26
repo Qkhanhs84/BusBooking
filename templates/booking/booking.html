@@ -1,0 +1,243 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}Đặt vé xe khách - Hải Hoàng Gia{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-2xl font-bold mb-6">Đặt vé xe khách</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Booking Form -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-xl font-bold mb-4">Thông tin hành khách</h2>
+                <form method="post" action="#">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Họ và tên
+                            </label>
+                            <div class="relative">
+                                <input
+                                    type="text"
+                                    name="passenger_name"
+                                    class="w-full p-2 pl-10 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="Nguyễn Văn A"
+                                    required
+                                />
+                                <i class="fas fa-user absolute left-3 top-2.5 h-5 w-5 text-gray-400"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">
+                                Số điện thoại
+                            </label>
+                            <div class="relative">
+                                <input
+                                    type="tel"
+                                    name="passenger_phone"
+                                    class="w-full p-2 pl-10 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="0912345678"
+                                    required
+                                />
+                                <i class="fas fa-phone absolute left-3 top-2.5 h-5 w-5 text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 class="text-xl font-bold mb-4">Chọn ghế</h2>
+                    <div class="bg-gray-100 p-4 rounded-lg mb-6">
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 bg-gray-300 rounded mr-2"></div>
+                                <span class="text-sm">Ghế trống</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 bg-blue-500 rounded mr-2"></div>
+                                <span class="text-sm">Ghế đã chọn</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 bg-red-500 rounded mr-2"></div>
+                                <span class="text-sm">Ghế đã đặt</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-6 h-6 bg-yellow-500 rounded mr-2"></div>
+                                <span class="text-sm">Ghế đang chọn</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-5 gap-2">
+                            {% for i in "12345678901234567890"|make_list %}
+                                {% with forloop.counter0 as i %}
+                                <button
+                                    type="button"
+                                    class="p-2 rounded text-center {% if i == 5 or i == 12 %}bg-red-500 text-white cursor-not-allowed{% else %}bg-gray-300 hover:bg-yellow-500{% endif %}"
+                                    {% if i == 5 or i == 12 %}disabled{% endif %}
+                                    onclick="selectSeat(this, {{ forloop.counter }})"
+                                    data-seat="{{ forloop.counter }}"
+                                >
+                                    {{ forloop.counter }}
+                                </button>
+                                {% endwith %}
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="selected_seats" id="selected_seats" value="">
+                    </div>
+
+                    <h2 class="text-xl font-bold mb-4">Phương thức thanh toán</h2>
+                    <div class="space-y-3 mb-6">
+                        <div class="flex items-center">
+                            <input
+                                type="radio"
+                                id="payment-cash"
+                                name="payment_method"
+                                value="cash"
+                                class="h-4 w-4 text-blue-600"
+                                checked
+                            />
+                            <label
+                                for="payment-cash"
+                                class="ml-2 block text-sm text-gray-900"
+                            >
+                                Thanh toán tiền mặt khi lên xe
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            <input
+                                type="radio"
+                                id="payment-bank"
+                                name="payment_method"
+                                value="bank"
+                                class="h-4 w-4 text-blue-600"
+                            />
+                            <label
+                                for="payment-bank"
+                                class="ml-2 block text-sm text-gray-900"
+                            >
+                                Chuyển khoản ngân hàng
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            <input
+                                type="radio"
+                                id="payment-card"
+                                name="payment_method"
+                                value="card"
+                                class="h-4 w-4 text-blue-600"
+                            />
+                            <label
+                                for="payment-card"
+                                class="ml-2 block text-sm text-gray-900"
+                            >
+                                Thanh toán thẻ tín dụng/ghi nợ
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <button
+                            type="submit"
+                            class="bg-blue-600 text-white px-8 py-3 text-lg rounded hover:bg-blue-700 transition-colors"
+                        >
+                            Xác nhận đặt vé
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Booking Summary -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-lg shadow-md p-6 sticky top-6">
+                <h2 class="text-xl font-bold mb-4">Thông tin chuyến xe</h2>
+                
+                <div class="flex items-center mb-4">
+                    <div class="w-12 h-12 mr-3 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span class="font-bold text-blue-600">HHG</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold">{{ bus_details.company }}</h3>
+                        <p class="text-sm text-gray-600">{{ bus_details.type }}</p>
+                    </div>
+                </div>
+                
+                <div class="border-t border-b py-4 my-4">
+                    <div class="flex items-center mb-3">
+                        <i class="fas fa-calendar w-5 h-5 mr-2 text-gray-600"></i>
+                        <span>Ngày đi: {{ date }}</span>
+                    </div>
+                    
+                    <div class="flex items-center mb-4">
+                        <div class="text-center mr-4">
+                            <p class="font-bold">{{ bus_details.departure_time }}</p>
+                            <p class="text-xs text-gray-600">{{ from_location }}</p>
+                        </div>
+                        <div class="flex flex-col items-center mx-1">
+                            <div class="w-2 h-2 rounded-full bg-blue-600"></div>
+                            <div class="w-0.5 h-8 bg-gray-300"></div>
+                            <div class="w-2 h-2 rounded-full bg-blue-600"></div>
+                        </div>
+                        <div class="text-center ml-4">
+                            <p class="font-bold">{{ bus_details.arrival_time }}</p>
+                            <p class="text-xs text-gray-600">{{ to_location }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-sm text-gray-600 mb-2">
+                        <strong>Điểm đón:</strong> {{ bus_details.departure_location }}
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <strong>Điểm trả:</strong> {{ bus_details.arrival_location }}
+                    </div>
+                </div>
+                
+                <div class="space-y-2 mb-4">
+                    <div class="flex justify-between">
+                        <span>Giá vé:</span>
+                        <span>{{ bus_details.price }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Phí dịch vụ:</span>
+                        <span>10,000 VND</span>
+                    </div>
+                    <div class="flex justify-between font-bold text-lg">
+                        <span>Tổng cộng:</span>
+                        <span>210,000 VND</span>
+                    </div>
+                </div>
+                
+                <div class="text-sm text-gray-600">
+                    <p>* Giá vé đã bao gồm thuế VAT</p>
+                    <p>* Vui lòng có mặt tại điểm đón trước 15 phút</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let selectedSeats = [];
+    
+    function selectSeat(element, seatNumber) {
+        if (element.disabled) return;
+        
+        if (element.classList.contains('bg-blue-500')) {
+            // Deselect seat
+            element.classList.remove('bg-blue-500', 'text-white');
+            element.classList.add('bg-gray-300');
+            selectedSeats = selectedSeats.filter(seat => seat !== seatNumber);
+        } else {
+            // Select seat
+            element.classList.remove('bg-gray-300');
+            element.classList.add('bg-blue-500', 'text-white');
+            selectedSeats.push(seatNumber);
+        }
+        
+        document.getElementById('selected_seats').value = selectedSeats.join(',');
+    }
+</script>
+{% endblock %}
+

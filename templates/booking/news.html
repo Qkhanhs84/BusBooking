@@ -1,0 +1,130 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}Tin tức - Hải Hoàng Gia{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8 text-center">Tin tức</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="md:col-span-2">
+            <div class="grid grid-cols-1 gap-8">
+                {% for i in "12345"|make_list %}
+                <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                    <div class="md:flex">
+                        <div class="md:flex-shrink-0 h-48 md:h-auto md:w-48 bg-gray-200 flex items-center justify-center">
+                            <span class="text-xl font-bold text-gray-500">Hình ảnh</span>
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center text-sm text-gray-600 mb-2">
+                                <i class="fas fa-calendar-alt mr-2"></i>
+                                <span>{% now "d/m/Y" %}</span>
+                            </div>
+                            <h2 class="text-xl font-bold mb-2">Hải Hoàng Gia mở thêm tuyến mới từ Nghệ An đi Quảng Bình</h2>
+                            <p class="text-gray-600 mb-4">
+                                Nhằm đáp ứng nhu cầu đi lại ngày càng tăng của hành khách, 
+                                Hải Hoàng Gia vừa chính thức khai trương thêm tuyến xe mới từ 
+                                Nghệ An đi Quảng Bình với tần suất 4 chuyến/ngày...
+                            </p>
+                            <a href="#" class="text-blue-600 hover:underline">Đọc tiếp</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <div class="flex justify-center mt-4">
+                    <nav class="inline-flex rounded-md shadow">
+                        <a href="#" class="py-2 px-4 bg-white border border-gray-300 rounded-l-md text-gray-700 hover:bg-gray-50">
+                            Trước
+                        </a>
+                        <a href="#" class="py-2 px-4 bg-blue-600 border border-blue-600 text-white">
+                            1
+                        </a>
+                        <a href="#" class="py-2 px-4 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50">
+                            2
+                        </a>
+                        <a href="#" class="py-2 px-4 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50">
+                            3
+                        </a>
+                        <a href="#" class="py-2 px-4 bg-white border border-gray-300 rounded-r-md text-gray-700 hover:bg-gray-50">
+                            Sau
+                        </a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        
+        <div>
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 class="text-xl font-bold mb-4">Tìm kiếm</h2>
+                <form>
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            class="w-full p-2 pr-10 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Tìm kiếm tin tức..."
+                        />
+                        <button type="submit" class="absolute right-2 top-2">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                <h2 class="text-xl font-bold mb-4">Danh mục</h2>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="#" class="flex items-center text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-angle-right mr-2 text-blue-600"></i>
+                            <span>Tin tức công ty</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-angle-right mr-2 text-blue-600"></i>
+                            <span>Khuyến mãi</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-angle-right mr-2 text-blue-600"></i>
+                            <span>Tuyến đường mới</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-angle-right mr-2 text-blue-600"></i>
+                            <span>Hướng dẫn đặt vé</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-angle-right mr-2 text-blue-600"></i>
+                            <span>Cẩm nang du lịch</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-bold mb-4">Bài viết gần đây</h2>
+                <div class="space-y-4">
+                    {% for i in "12345"|make_list %}
+                    <div class="flex">
+                        <div class="flex-shrink-0 w-16 h-16 bg-gray-200 rounded flex items-center justify-center mr-3">
+                            <span class="text-sm font-bold text-gray-500">Ảnh</span>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-sm">Hải Hoàng Gia mở thêm tuyến mới từ Nghệ An đi Quảng Bình</h3>
+                            <p class="text-xs text-gray-600">{% now "d/m/Y" %}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

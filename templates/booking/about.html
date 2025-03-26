@@ -1,0 +1,111 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}Giới thiệu - Hải Hoàng Gia{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8 text-center">Giới thiệu</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 items-center">
+        <div>
+            <h2 class="text-2xl font-bold mb-4">Về Hải Hoàng Gia</h2>
+            <p class="mb-4">
+                Công ty CP Thương mại và Dịch vụ Hải Hoàng Gia được thành lập vào năm 2008, 
+                chuyên cung cấp dịch vụ vận tải hành khách chất lượng cao trên các tuyến đường 
+                từ Nghệ An đi các tỉnh thành trong cả nước.
+            </p>
+            <p class="mb-4">
+                Với đội xe hiện đại, đội ngũ lái xe chuyên nghiệp và dịch vụ chăm sóc khách hàng 
+                tận tâm, Hải Hoàng Gia đã trở thành một trong những nhà vận tải hành khách uy tín 
+                được nhiều khách hàng tin tưởng lựa chọn.
+            </p>
+            <p>
+                Chúng tôi cam kết mang đến cho khách hàng những chuyến đi an toàn, thoải mái với 
+                giá cả hợp lý và dịch vụ chuyên nghiệp.
+            </p>
+        </div>
+        <div class="h-80 md:h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+            <span class="text-2xl font-bold text-gray-500">Hải Hoàng Gia</span>
+        </div>
+    </div>
+    
+    <div class="mb-12">
+        <h2 class="text-2xl font-bold mb-6 text-center">Tầm nhìn & Sứ mệnh</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-bold mb-4 text-blue-600">Tầm nhìn</h3>
+                <p>
+                    Trở thành doanh nghiệp vận tải hành khách hàng đầu khu vực miền Trung, 
+                    mang đến dịch vụ vận chuyển an toàn, tiện nghi và hiện đại cho mọi hành khách.
+                </p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-bold mb-4 text-blue-600">Sứ mệnh</h3>
+                <p>
+                    Cung cấp dịch vụ vận tải hành khách chất lượng cao, an toàn và đáng tin cậy. 
+                    Không ngừng nâng cao chất lượng dịch vụ, đáp ứng nhu cầu đi lại ngày càng cao 
+                    của khách hàng.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mb-12">
+        <h2 class="text-2xl font-bold mb-6 text-center">Giá trị cốt lõi</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-shield-alt h-8 w-8 text-blue-600"></i>
+                </div>
+                <h3 class="font-bold text-lg mb-2">An toàn</h3>
+                <p class="text-gray-600">Đặt sự an toàn của hành khách lên hàng đầu trong mọi hoạt động</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-bolt h-8 w-8 text-blue-600"></i>
+                </div>
+                <h3 class="font-bold text-lg mb-2">Hiệu quả</h3>
+                <p class="text-gray-600">Tối ưu hóa quy trình vận hành để mang lại hiệu quả cao nhất</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-heart h-8 w-8 text-blue-600"></i>
+                </div>
+                <h3 class="font-bold text-lg mb-2">Tận tâm</h3>
+                <p class="text-gray-600">Phục vụ khách hàng với tinh thần tận tâm, chu đáo</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md text-center">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-lightbulb h-8 w-8 text-blue-600"></i>
+                </div>
+                <h3 class="font-bold text-lg mb-2">Đổi mới</h3>
+                <p class="text-gray-600">Không ngừng đổi mới, nâng cao chất lượng dịch vụ</p>
+            </div>
+        </div>
+    </div>
+    
+    <div>
+        <h2 class="text-2xl font-bold mb-6 text-center">Đội xe</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for i in "123"|make_list %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                <div class="h-48 bg-gray-200 flex items-center justify-center">
+                    <span class="text-2xl font-bold text-gray-500">Xe {{ forloop.counter }}</span>
+                </div>
+                <div class="p-4">
+                    <h3 class="font-bold text-lg mb-2">Giường nằm cao cấp</h3>
+                    <p class="text-gray-600 mb-2">
+                        Xe giường nằm cao cấp 40 chỗ, trang bị đầy đủ tiện nghi hiện đại, 
+                        mang lại cảm giác thoải mái cho hành khách trong suốt hành trình.
+                    </p>
+                    <p class="text-sm text-gray-500">
+                        Tiện ích: WiFi, nước uống, khăn lạnh, chăn đắp
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
