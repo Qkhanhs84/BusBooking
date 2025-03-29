@@ -1,0 +1,229 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}Tra cứu vé - Hải Hoàng Gia{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8 text-center">Tra cứu vé</h1>
+    
+    <div class="max-w-2xl mx-auto">
+        <!-- Search Form -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-bold mb-4">Nhập mã vé để tra cứu</h2>
+            <form id="ticket-search-form" method="get" action="#">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Mã vé</label>
+                    <div class="flex">
+                        <input 
+                            type="text" 
+                            name="ticket_code" 
+                            id="ticket-code"
+                            class="flex-grow p-2 border border-gray-300 rounded-l focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="Nhập mã vé của bạn"
+                            required
+                        />
+                        <button 
+                            type="submit" 
+                            class="bg-blue-600 text-white px-4 py-2 rounded-r hover:bg-blue-700 transition-colors flex items-center justify-center"
+                        >
+                            <i class="fas fa-search w-5 h-5 mr-2"></i>
+                            Tra cứu
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Ticket Information (Hidden by default) -->
+        <div id="ticket-info" class="bg-white rounded-lg shadow-md p-6 mb-8 hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Thông tin vé</h2>
+                <span class="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">
+                    Đã xác nhận
+                </span>
+            </div>
+            
+            <div class="border-t border-gray-200 pt-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Mã vé</p>
+                        <p class="font-bold" id="display-ticket-code">HHG-12345678</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Họ tên khách hàng</p>
+                        <p class="font-bold" id="display-customer-name">Nguyễn Văn A</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Số điện thoại</p>
+                        <p class="font-bold" id="display-phone">0912345678</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Email</p>
+                        <p class="font-bold" id="display-email">example@email.com</p>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 mr-3 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span class="font-bold text-blue-600">HHG</span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold" id="display-bus-type">Giường nằm cao cấp</h3>
+                            <p class="text-sm text-gray-600" id="display-company">
+                                Hải Hoàng Gia
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center mb-4">
+                        <div class="text-center mr-6">
+                            <p class="font-bold text-lg" id="display-departure-time">
+                                19:00
+                            </p>
+                            <p class="text-sm text-gray-600" id="display-from">Nghệ An</p>
+                        </div>
+                        <div class="flex flex-col items-center mx-2">
+                            <div class="w-2 h-2 rounded-full bg-blue-600"></div>
+                            <div class="w-0.5 h-12 bg-gray-300"></div>
+                            <div class="w-2 h-2 rounded-full bg-blue-600"></div>
+                        </div>
+                        <div class="text-center ml-6">
+                            <p class="font-bold text-lg" id="display-arrival-time">01:00</p>
+                            <p class="text-sm text-gray-600" id="display-to">Hà Nội</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">Ngày khởi hành</p>
+                            <p class="font-bold" id="display-date">01-03-2025</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">Vị trí ghế</p>
+                            <p class="font-bold" id="display-seat">A12, A13</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">Tổng tiền</p>
+                            <p class="font-bold text-blue-600" id="display-price">500,000 VND</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end">
+                    <button 
+                        id="cancel-ticket-btn"
+                        class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors flex items-center justify-center"
+                    >
+                        <i class="fas fa-times w-5 h-5 mr-2"></i>
+                        Hủy vé
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- No Ticket Found Message (Hidden by default) -->
+        <div id="no-ticket-found" class="bg-white rounded-lg shadow-md p-6 mb-8 hidden">
+            <div class="text-center py-8">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-exclamation-triangle h-8 w-8 text-red-600"></i>
+                </div>
+                <h3 class="font-bold text-lg mb-2">Không tìm thấy vé</h3>
+                <p class="text-gray-600 mb-4">
+                    Không tìm thấy thông tin vé với mã vé bạn đã nhập. Vui lòng kiểm tra lại mã vé.
+                </p>
+                <button 
+                    id="search-again-btn"
+                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                >
+                    Tìm kiếm lại
+                </button>
+            </div>
+        </div>
+        
+        <!-- Cancel Confirmation Modal (Hidden by default) -->
+        <div id="cancel-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg shadow-md p-6 max-w-md w-full mx-4">
+                <h3 class="font-bold text-lg mb-4">Xác nhận hủy vé</h3>
+                <p class="text-gray-600 mb-6">
+                    Bạn có chắc chắn muốn hủy vé này? Hành động này không thể hoàn tác.
+                </p>
+                <div class="flex justify-end space-x-4">
+                    <button 
+                        id="cancel-modal-close"
+                        class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                    >
+                        Đóng
+                    </button>
+                    <button 
+                        id="confirm-cancel-btn"
+                        class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+                    >
+                        Xác nhận hủy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ticketSearchForm = document.getElementById('ticket-search-form');
+        const ticketInfo = document.getElementById('ticket-info');
+        const noTicketFound = document.getElementById('no-ticket-found');
+        const cancelModal = document.getElementById('cancel-modal');
+        const cancelTicketBtn = document.getElementById('cancel-ticket-btn');
+        const cancelModalClose = document.getElementById('cancel-modal-close');
+        const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+        const searchAgainBtn = document.getElementById('search-again-btn');
+        
+        // Handle ticket search
+        ticketSearchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const ticketCode = document.getElementById('ticket-code').value;
+            
+            // This is where you would normally make an AJAX request to your backend
+            // For demo purposes, we'll just show the ticket info if the code is "HHG12345"
+            if (ticketCode === "HHG12345") {
+                ticketInfo.classList.remove('hidden');
+                noTicketFound.classList.add('hidden');
+                document.getElementById('display-ticket-code').textContent = ticketCode;
+            } else {
+                ticketInfo.classList.add('hidden');
+                noTicketFound.classList.remove('hidden');
+            }
+        });
+        
+        // Handle search again button
+        searchAgainBtn.addEventListener('click', function() {
+            noTicketFound.classList.add('hidden');
+            document.getElementById('ticket-code').value = '';
+            document.getElementById('ticket-code').focus();
+        });
+        
+        // Handle cancel ticket button
+        cancelTicketBtn.addEventListener('click', function() {
+            cancelModal.classList.remove('hidden');
+        });
+        
+        // Handle cancel modal close button
+        cancelModalClose.addEventListener('click', function() {
+            cancelModal.classList.add('hidden');
+        });
+        
+        // Handle confirm cancel button
+        confirmCancelBtn.addEventListener('click', function() {
+            // This is where you would normally make an AJAX request to cancel the ticket
+            // For demo purposes, we'll just hide the modal and ticket info
+            cancelModal.classList.add('hidden');
+            ticketInfo.classList.add('hidden');
+            
+            // Show a success message (you could add this element to your HTML)
+            alert('Vé đã được hủy thành công!');
+        });
+    });
+</script>
+{% endblock %}
