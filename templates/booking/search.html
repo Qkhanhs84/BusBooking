@@ -3,9 +3,25 @@
 {% block title %}Vé xe khách từ {{ from_location }} đi {{ to_location }} - Hải Hoàng Gia{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        flatpickr("#datePicker", {
+            dateFormat: "d-m-Y",  // Định dạng ngày-tháng-năm
+            minDate: "today",     // Không cho chọn ngày trong quá khứ
+            locale: {
+                firstDayOfWeek: 1 // Bắt đầu tuần từ thứ Hai
+            }
+        });
+    });
+</script>
 <div class="container mx-auto px-4 py-6">
     <h1 class="text-2xl font-bold mb-6">
-        Vé xe khách từ {{ from_location }} đi {{ to_location }}
+        Vé xe khách từ 
+        <span class="text-blue-600">{{ departure_province }}</span> 
+        đi 
+        <span class="text-blue-600">{{ arrival_province }}</span>
     </h1>
 
     <!-- Search Form -->
@@ -20,10 +36,12 @@
                         class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
                         required
                     >
-                        <option value="Nghe An" {% if from_location == 'Nghe An' %}selected{% endif %}>Nghệ An</option>
-                        <option value="Ha Noi" {% if from_location == 'Ha Noi' %}selected{% endif %}>Hà Nội</option>
-                        <option value="Da Nang" {% if from_location == 'Da Nang' %}selected{% endif %}>Đà Nẵng</option>
-                        <option value="Ho Chi Minh" {% if from_location == 'Ho Chi Minh' %}selected{% endif %}>Hồ Chí Minh</option>
+                    <option value="">Chọn điểm đi</option>
+                    {% for code, name in provinces %}
+                    <option value="{{ code }}" {% if request.GET.from == code %}selected{% endif %}>{{ name }}
+                    
+        </option>
+    {% endfor %}
                     </select>
                 </div>
                 
@@ -34,11 +52,12 @@
                         class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
                         required
                     >
-                        <option value="">Chọn điểm đến</option>
-                        <option value="Quang Binh" {% if to_location == 'Quang Binh' %}selected{% endif %}>Quảng Bình</option>
-                        <option value="Ha Noi" {% if to_location == 'Ha Noi' %}selected{% endif %}>Hà Nội</option>
-                        <option value="Da Nang" {% if to_location == 'Da Nang' %}selected{% endif %}>Đà Nẵng</option>
-                        <option value="Ho Chi Minh" {% if to_location == 'Ho Chi Minh' %}selected{% endif %}>Hồ Chí Minh</option>
+                    <option value="">Chọn điểm đến</option>
+                    {% for code, name in provinces %}
+                    <option value="{{ code }}" {% if request.GET.to == code %}selected{% endif %}>{{ name }}
+
+                    </option>
+                    {% endfor %}
                     </select>
                 </div>
                 
@@ -47,13 +66,12 @@
                     <div class="relative">
                         <input 
                             type="text" 
+                            id="datePicker"
                             name="date"
-                            class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500 pl-10"
-                            value="{{ date }}"
-                            placeholder="DD-MM-YYYY"
+                            class="w-full p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                            value="{{ date|date:'d-m-Y' }}"
                             required
                         />
-                        <i class="fas fa-calendar absolute left-3 top-2.5 h-5 w-5 text-gray-400"></i>
                     </div>
                 </div>
                 
@@ -78,33 +96,33 @@
         <div class="flex items-center text-gray-600">
             <i class="fas fa-map-marker-alt w-5 h-5 mr-2"></i>
             <span>
-                Tuyến đường: {{ from_location }} → {{ to_location }}
+                Tuyến đường: {{ departure_province }} → {{ arrival_province }}
             </span>
         </div>
     </div>
 
     <div class="space-y-4">
-        {% for schedule in bus_schedules %}
+        {% for trip in trips %}
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
             <div class="p-4 border-b">
                 <div class="flex justify-between items-center">
                     <div class="flex items-center">
                         <div class="w-12 h-12 mr-3 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span class="font-bold text-blue-600">HHG</span>
+                            <span class="font-bold text-blue-600">VBB</span>
                         </div>
                         <div>
-                            <h3 class="font-bold">{{ schedule.company }}</h3>
+                            <h3 class="font-bold">{{ trip.schedule.route.route_name }}</h3>
                             <p class="text-sm text-gray-600">
-                                {{ schedule.type }}
+                                {{ trip.schedule.bus.get_bus_type_display }} - {{ trip.schedule.bus.total_seats }} chỗ
                             </p>
                         </div>
                     </div>
                     <div class="text-right">
                         <p class="font-bold text-lg text-blue-600">
-                            {{ schedule.price }}
+                            {{ trip.compute_price }}.000 VNĐ
                         </p>
                         <p class="text-sm text-gray-600">
-                            {{ schedule.available_seats }} chỗ trống
+                            {{ trip.available_seats }} chỗ trống
                         </p>
                     </div>
                 </div>
@@ -114,9 +132,9 @@
                 <div class="flex items-center mb-4 md:mb-0">
                     <div class="text-center mr-6">
                         <p class="font-bold text-lg">
-                            {{ schedule.departure_time }}
+                            {{ trip.schedule.departure_time }}
                         </p>
-                        <p class="text-sm text-gray-600">{{ from_location }}</p>
+                        <p class="text-sm text-gray-600">{{ trip.schedule.route.departure_station.station_name }}</p>
                     </div>
                     <div class="flex flex-col items-center mx-2">
                         <div class="w-2 h-2 rounded-full bg-blue-600"></div>
@@ -124,20 +142,25 @@
                         <div class="w-2 h-2 rounded-full bg-blue-600"></div>
                     </div>
                     <div class="text-center ml-6">
-                        <p class="font-bold text-lg">{{ schedule.arrival_time }}</p>
-                        <p class="text-sm text-gray-600">{{ to_location }}</p>
+                        <p class="font-bold text-lg">{{ trip.schedule.arrival_time }}</p>
+                        <p class="text-sm text-gray-600">{{ trip.schedule.route.arrival_station.station_name }}</p>
                     </div>
                 </div>
 
                 <div class="flex items-center">
                     <i class="fas fa-clock w-5 h-5 mr-2 text-gray-600"></i>
-                    <span class="text-gray-600 mr-6">6h00m</span>
-                    <a
-                        href="{% url 'booking' %}?id={{ schedule.id }}&from={{ from_location }}&to={{ to_location }}&date={{ date }}"
-                        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-                    >
-                        Chọn chuyến
-                    </a>
+                    <span class="text-gray-600 mr-6">{{ trip.schedule.route.compute_time }}</span>
+                    <i class="fas fa-road w-5 h-5 mr-2 text-gray-600"></i>
+                    <span class="text-gray-600 mr-6">{{ trip.schedule.route.distance_km |floatformat:0  }} km</span>
+                    <form action="{% url 'booking' %}" method="GET">
+                        {% csrf_token %}
+                        <input type="hidden" name="id" value="{{ trip.id }}">
+                        
+                        
+                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+                            Chọn chuyến
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

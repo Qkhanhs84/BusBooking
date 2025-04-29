@@ -2,27 +2,50 @@ from django.db import models
 from django.utils import timezone
 
 class BusStation(models.Model):
+    PROVINCES = [
+        ('DNANG', 'Đà Nẵng'),
+        ('NAN', 'Nghệ An'),
+        ('QNAM', 'Quảng Nam'),
+        ('HNOI', 'Hà Nội'),
+        ('HCMINH', 'Hồ Chí Minh'),
+        ('TTTHUE', 'Thừa Thiên Huế'),
+        ('QNGAI', 'Quảng Ngãi'),
+        ('QTRI','Quảng Trị'),
+        ('QBINH', 'Quảng Bình'),
+        ('HTINH', 'Hà Tĩnh'),
+        ('DLAT', 'Đà Lạt'),
+        
+        
+    ]
     station_name = models.CharField(max_length=100)
     address = models.TextField()
-    city = models.CharField(max_length=50)
-    province = models.CharField(max_length=50)
-    contact_number = models.CharField(max_length=20, null=True, blank=True)
+    province = models.CharField(max_length=50,choices=PROVINCES)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
-
+    
+    @classmethod
+    def get_province_code(cls,province_name):
+        reversed_provinces = {v: k for k, v in cls.PROVINCES}
+        return reversed_provinces.get(province_name, None)
+    @classmethod
+    def get_province_name(cls, province_code):
+        return dict(cls.PROVINCES).get(province_code, None)
+    
     def __str__(self):
-        return f"{self.station_name} - {self.city}"
+        return f"{self.station_name} - {self.get_province_display()}"
 
 class Bus(models.Model):
     BUS_TYPES = [
-        ('Sitting', 'Sitting'),
-        ('Sleeper', 'Sleeper'),
+        ('Sitting', 'Ngồi'),
+        ('Sleeper', 'Giường nằm'),
+        ('SleeperVIP', 'Giường nằm VIP'),
     ]
     
     license_plate = models.CharField(max_length=20, unique=True)
     bus_type = models.CharField(max_length=10, choices=BUS_TYPES)
     total_seats = models.IntegerField()
     amenities = models.TextField(null=True, blank=True)
+    surcharge = models.IntegerField(default=0,choices=[(0,0),(50,50),(100,100)]) # in VND
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -33,11 +56,15 @@ class Route(models.Model):
     route_name = models.CharField(max_length=100)
     departure_station = models.ForeignKey(BusStation, on_delete=models.CASCADE, related_name='departures')
     arrival_station = models.ForeignKey(BusStation, on_delete=models.CASCADE, related_name='arrivals')
+    base_price = models.IntegerField(default=0) # in VND
     distance_km = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     estimated_duration_minutes = models.IntegerField(default=0)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
-
+    
+    def compute_time(self):
+        return f'{self.estimated_duration_minutes // 60}h{(self.estimated_duration_minutes % 60) if self.estimated_duration_minutes %60 !=0 else '' }'
+    
     def __str__(self):
         return f"{self.route_name} ({self.departure_station} to {self.arrival_station})"
 
@@ -70,23 +97,20 @@ class Trip(models.Model):
 
     class Meta:
         unique_together = ['schedule', 'trip_date']
-
+        
+    def compute_price(self):
+        base_price = self.schedule.route.base_price
+        surcharge = self.schedule.bus.surcharge
+        return base_price + surcharge
     def __str__(self):
         return f"{self.schedule} on {self.trip_date}"
 
 class Seat(models.Model):
-    SEAT_TYPES = [
-        ('Regular', 'Regular'),
-        ('VIP', 'VIP'),
-        ('Window', 'Window'),
-        ('Aisle', 'Aisle'),
-        ('UpperBerth', 'Upper Berth'),
-        ('LowerBerth', 'Lower Berth'),
-    ]
+    
     
     bus = models.ForeignKey(Bus, on_delete=models.CASCADE)
     seat_number = models.CharField(max_length=10)
-    seat_type = models.CharField(max_length=10, choices=SEAT_TYPES)
+    
     position_description = models.CharField(max_length=100, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
@@ -95,7 +119,7 @@ class Seat(models.Model):
         unique_together = ['bus', 'seat_number']
 
     def __str__(self):
-        return f"{self.bus} - Seat {self.seat_number} ({self.seat_type})"
+        return f"{self.bus} - Seat {self.seat_number} "
 
 class Booking(models.Model):
     BOOKING_STATUS = [
@@ -165,26 +189,21 @@ class CancellationRequest(models.Model):
 
     def __str__(self):
         return f"Cancellation for {self.booking.booking_code}"
-
-class PriceList(models.Model):
-    SEAT_TYPES = [
-        ('Regular', 'Regular'),
-        ('VIP', 'VIP'),
-        ('Window', 'Window'),
-        ('Aisle', 'Aisle'),
-        ('UpperBerth', 'Upper Berth'),
-        ('LowerBerth', 'Lower Berth'),
+class SeatTrip(models.Model):
+    SEAT_STATUS = [
+        ('Available', 'Còn trống'),
+        ('Booked', 'Đã đặt'),
+        ('InProgress', 'Đang tiến hành'),
     ]
 
-    route = models.ForeignKey(Route, on_delete=models.CASCADE)
-    seat_type = models.CharField(max_length=10, choices=SEAT_TYPES)
-    base_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(default=timezone.now)
+    trip = models.ForeignKey(Trip, on_delete=models.CASCADE)
+    seat = models.ForeignKey(Seat, on_delete=models.CASCADE)
+    status = models.CharField(max_length=15, choices=SEAT_STATUS, default='Available')
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ['route', 'seat_type']
+        unique_together = ['trip', 'seat']
 
     def __str__(self):
-        return f"{self.route} - {self.seat_type} Price"
+        return f"Trip {self.trip.id} - Seat {self.seat.seat_number} - {self.get_status_display()}"
+

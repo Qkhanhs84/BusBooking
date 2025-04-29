@@ -87,7 +87,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Ho_Chi_Minh'
 USE_I18N = True
 USE_TZ = True
 
@@ -100,3 +100,11 @@ STATICFILES_DIRS = [
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Cấu hình Django gửi email qua Gmail
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"  # SMTP server của Gmail
+EMAIL_PORT = 587  # Cổng SMTP của Gmail
+EMAIL_USE_TLS = True  # Bật TLS (Transport Layer Security) để bảo mật
+EMAIL_HOST_USER = "quockhanh08042004@gmail.com"  # Thay bằng email của bạn
+EMAIL_HOST_PASSWORD = "wedm xzan kddq ozrr"  # Thay bằng mật khẩu ứng dụng (không phải mật khẩu Gmail)
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # Đặt email mặc định để gửi

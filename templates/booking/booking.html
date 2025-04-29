@@ -1,6 +1,6 @@
 {% extends 'booking/base.html' %}
 
-{% block title %}Đặt vé xe khách - Hải Hoàng Gia{% endblock %}
+{% block title %}Đặt vé xe khách - BUSBOOKING{% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-4 py-6">
@@ -11,40 +11,61 @@
         <div class="lg:col-span-2">
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                 <h2 class="text-xl font-bold mb-4">Thông tin hành khách</h2>
-                <form method="post" action="#">
+                <form method="post" action="{% url 'verify_email' %}" onsubmit="return validateForm()">
+                    
                     {% csrf_token %}
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="grid grid-cols-2 md:grid-cols-2 gap-4 mb-6">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Họ và tên
-                            </label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Họ và tên</label>
                             <div class="relative">
                                 <input
                                     type="text"
                                     name="passenger_name"
                                     class="w-full p-2 pl-10 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="Nguyễn Văn A"
+                                    
                                     required
                                 />
                                 <i class="fas fa-user absolute left-3 top-2.5 h-5 w-5 text-gray-400"></i>
                             </div>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">
-                                Số điện thoại
-                            </label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
                             <div class="relative">
                                 <input
                                     type="tel"
                                     name="passenger_phone"
+                                    id="passenger_phone"
+                                    oninput="validatePhone()"
                                     class="w-full p-2 pl-10 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
                                     placeholder="0912345678"
+                                    
                                     required
                                 />
                                 <i class="fas fa-phone absolute left-3 top-2.5 h-5 w-5 text-gray-400"></i>
                             </div>
+                            <p id="phone_error" class="hidden text-red-500">Số điện thoại không hợp lệ!</p>
                         </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <div class="relative">
+                                <input
+                                    type="email"
+                                    id="passenger_email"
+                                    name="passenger_email"
+                                    class="w-full p-2 pl-10 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                                    placeholder="example@gmail.com"
+                                    required
+                                    onblur="validateEmail()"
+                                />
+                                <i class="fas fa-envelope absolute left-3 top-2.5 h-5 w-5 text-gray-400"></i>
+                            </div>
+                            <p id="email_error" class="text-red-500 text-sm mt-1 hidden">Email không đúng định dạng!</p>
+                        </div>
+                        
                     </div>
+                    
+                    
 
                     <h2 class="text-xl font-bold mb-4">Chọn ghế</h2>
                     <div class="bg-gray-100 p-4 rounded-lg mb-6">
@@ -67,22 +88,70 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-5 gap-2">
-                            {% for i in "12345678901234567890"|make_list %}
-                                {% with forloop.counter0 as i %}
-                                <button
-                                    type="button"
-                                    class="p-2 rounded text-center {% if i == 5 or i == 12 %}bg-red-500 text-white cursor-not-allowed{% else %}bg-gray-300 hover:bg-yellow-500{% endif %}"
-                                    {% if i == 5 or i == 12 %}disabled{% endif %}
-                                    onclick="selectSeat(this, {{ forloop.counter }})"
-                                    data-seat="{{ forloop.counter }}"
-                                >
-                                    {{ forloop.counter }}
-                                </button>
-                                {% endwith %}
-                            {% endfor %}
-                        </div>
+                        
+                    {% if trip.schedule.bus.bus_type == 'Sitting'%}
+                        {% if seats|length == 44 %}
+                            <div class="grid grid-cols-11 gap-2">
+                                {% for seat in seats %}
+                                    
+                                    {% if seat.seat.seat_number == 'S23' %}
+                                        <div class="col-span-11 h-8"></div>
+                                    {% endif %} 
+                                        
+                                    <button
+                                        type="button"
+                                        class="p-2 rounded text-center {% if i == 5 or i == 12 %}bg-red-500 text-white cursor-not-allowed{% else %}bg-gray-300 hover:bg-yellow-500{% endif %}"
+                                        {% if i == 5 or i == 12 %}disabled{% endif %}
+                                        onclick="selectSeat(this, {{ seat.id }})"
+                                        data-seat="{{ seat.seat.seat_number }}"
+                                    >
+                                        <i class="fas fa-couch"></i> {{ seat.seat.seat_number }}
+                                    </button>
+                                        
+                                    
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="grid grid-cols-7 gap-2">
+                                {% for i in bed_range %}
+                                    {% with forloop.counter0 as i %}
+                                        {% if forloop.counter == 15 %}
+                                            <div class="col-span-6 h-8"></div>
+                                            {% if forloop.counter == 15 %}
+                                                <button
+                                                    type="button"
+                                                    class="p-2 rounded text-center bg-gray-300 hover:bg-yellow-500"
+                                                    onclick="selectSeat(this, 29)"
+                                                    data-seat="29"
+                                                >
+                                                <i class="fas fa-couch"></i> 29
+                                                
+                                                </button>
+                                            {% endif %} 
+                                        {% endif %} 
+                                        {% if forloop.counter <= 28 %}
+                                            <button
+                                                type="button"
+                                                class="p-2 rounded text-center {% if i == 5 or i == 12 %}bg-red-500 text-white cursor-not-allowed{% else %}bg-gray-300 hover:bg-yellow-500{% endif %}"
+                                                {% if i == 5 or i == 12 %}disabled{% endif %}
+                                                onclick="selectSeat(this, {{ forloop.counter }})"
+                                                data-seat="{{ forloop.counter }}"
+                                            >
+                                                <i class="fas fa-couch"></i> {{ forloop.counter }}
+                                            </button>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                    
+                        
+                          
+                          
+                        
                         <input type="hidden" name="selected_seats" id="selected_seats" value="">
+                        <input type="hidden" name="trip_id" value="{{ trip.id }}">
                     </div>
 
                     <h2 class="text-xl font-bold mb-4">Phương thức thanh toán</h2>
@@ -118,21 +187,7 @@
                                 Chuyển khoản ngân hàng
                             </label>
                         </div>
-                        <div class="flex items-center">
-                            <input
-                                type="radio"
-                                id="payment-card"
-                                name="payment_method"
-                                value="card"
-                                class="h-4 w-4 text-blue-600"
-                            />
-                            <label
-                                for="payment-card"
-                                class="ml-2 block text-sm text-gray-900"
-                            >
-                                Thanh toán thẻ tín dụng/ghi nợ
-                            </label>
-                        </div>
+                        
                     </div>
 
                     <div class="text-center">
@@ -154,24 +209,24 @@
                 
                 <div class="flex items-center mb-4">
                     <div class="w-12 h-12 mr-3 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span class="font-bold text-blue-600">HHG</span>
+                        <span class="font-bold text-blue-600">VBB</span>
                     </div>
                     <div>
-                        <h3 class="font-bold">{{ bus_details.company }}</h3>
-                        <p class="text-sm text-gray-600">{{ bus_details.type }}</p>
+                        <h3 class="font-bold">{{ trip.schedule.route.route_name }}</h3>
+                        <p class="text-sm text-gray-600">{{trip.schedule.bus.license_plate}} : {{ trip.schedule.bus.get_bus_type_display }} - {{trip.schedule.bus.total_seats}} chỗ</p>
                     </div>
                 </div>
                 
                 <div class="border-t border-b py-4 my-4">
                     <div class="flex items-center mb-3">
                         <i class="fas fa-calendar w-5 h-5 mr-2 text-gray-600"></i>
-                        <span>Ngày đi: {{ date }}</span>
+                        <span>Ngày đi: {{ trip.trip_date|date:"d-m-Y" }}</span>
                     </div>
                     
                     <div class="flex items-center mb-4">
                         <div class="text-center mr-4">
-                            <p class="font-bold">{{ bus_details.departure_time }}</p>
-                            <p class="text-xs text-gray-600">{{ from_location }}</p>
+                            <p class="font-bold">{{ trip.schedule.departure_time }}</p>
+                            <p class="text-xs text-gray-600">{{ trip.schedule.route.departure_station.station_name }}</p>
                         </div>
                         <div class="flex flex-col items-center mx-1">
                             <div class="w-2 h-2 rounded-full bg-blue-600"></div>
@@ -179,31 +234,31 @@
                             <div class="w-2 h-2 rounded-full bg-blue-600"></div>
                         </div>
                         <div class="text-center ml-4">
-                            <p class="font-bold">{{ bus_details.arrival_time }}</p>
-                            <p class="text-xs text-gray-600">{{ to_location }}</p>
+                            <p class="font-bold">{{ trip.schedule.arrival_time }}</p>
+                            <p class="text-xs text-gray-600">{{ trip.schedule.route.arrival_station.station_name }}</p>
                         </div>
                     </div>
                     
                     <div class="text-sm text-gray-600 mb-2">
-                        <strong>Điểm đón:</strong> {{ bus_details.departure_location }}
+                        <strong>Địa chỉ đón:</strong> {{ trip.schedule.route.departure_station.address }}
                     </div>
                     <div class="text-sm text-gray-600">
-                        <strong>Điểm trả:</strong> {{ bus_details.arrival_location }}
+                        <strong>Địa chỉ trả:</strong> {{ trip.schedule.route.arrival_station.address }}
                     </div>
                 </div>
                 
                 <div class="space-y-2 mb-4">
                     <div class="flex justify-between">
                         <span>Giá vé:</span>
-                        <span>{{ bus_details.price }}</span>
+                        <span>{{ trip.compute_price }}.000 VNĐ</span>
                     </div>
                     <div class="flex justify-between">
                         <span>Phí dịch vụ:</span>
-                        <span>10,000 VND</span>
+                        <span>0 VND</span>
                     </div>
                     <div class="flex justify-between font-bold text-lg">
                         <span>Tổng cộng:</span>
-                        <span>210,000 VND</span>
+                        <span>{{ trip.compute_price }}.000 VNĐ</span>
                     </div>
                 </div>
                 
@@ -221,23 +276,65 @@
 <script>
     let selectedSeats = [];
     
-    function selectSeat(element, seatNumber) {
+    function selectSeat(element, id) {
         if (element.disabled) return;
         
         if (element.classList.contains('bg-blue-500')) {
             // Deselect seat
             element.classList.remove('bg-blue-500', 'text-white');
             element.classList.add('bg-gray-300');
-            selectedSeats = selectedSeats.filter(seat => seat !== seatNumber);
+            selectedSeats = selectedSeats.filter(seat => seat !== id);
         } else {
             // Select seat
             element.classList.remove('bg-gray-300');
             element.classList.add('bg-blue-500', 'text-white');
-            selectedSeats.push(seatNumber);
+            selectedSeats.push(id);
         }
         
         document.getElementById('selected_seats').value = selectedSeats.join(',');
     }
+    function validatePhone() {
+        const phoneInput = document.getElementById("passenger_phone");
+        const phoneError = document.getElementById("phone_error");
+        const phonePattern = /^\+?[0-9]{10,15}$/; // Chấp nhận số điện thoại có từ 10-15 chữ số, có thể bắt đầu bằng '+'
+    
+        if (!phonePattern.test(phoneInput.value)) {
+            phoneError.classList.remove("hidden"); // Hiển thị lỗi
+            phoneInput.classList.add("border-red-500");
+            return false;
+        } else {
+            phoneError.classList.add("hidden"); // Ẩn lỗi nếu đúng
+            phoneInput.classList.remove("border-red-500");
+            return true;
+        }
+    }
+    function validateEmail() {
+        const emailInput = document.getElementById("passenger_email");
+        const emailError = document.getElementById("email_error");
+        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    
+        if (!emailPattern.test(emailInput.value)) {
+            emailError.classList.remove("hidden"); // Hiển thị lỗi
+            emailInput.classList.add("border-red-500");
+            return false;
+        } else {
+            emailError.classList.add("hidden"); // Ẩn lỗi nếu đúng
+            emailInput.classList.remove("border-red-500");
+            return true;
+        }
+    }
+    function validateForm() {
+        const phoneValid = validatePhone();
+        const emailValid = validateEmail();
+        const selected_seats = document.getElementById('selected_seats').value;
+        if(selected_seats === "") {
+            alert("Vui lòng chọn ít nhất một ghế!");
+            return false;
+        }
+        return phoneValid && emailValid;
+    }
+    
+    
 </script>
 {% endblock %}
 

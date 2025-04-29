@@ -69,48 +69,21 @@
                 <thead class="bg-gray-100">
                     <tr>
                         <th class="py-3 px-4 text-left">Tuyến đường</th>
-                        <th class="py-3 px-4 text-left">Loại xe</th>
+                        <th class="py-3 px-4 text-left">Khoảng cách</th>
                         <th class="py-3 px-4 text-left">Giá vé</th>
                         <th class="py-3 px-4 text-left">Thời gian</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
+                   
+                    {% for route in routes%}
                     <tr>
-                        <td class="py-3 px-4">Nghệ An - Quảng Bình</td>
-                        <td class="py-3 px-4">Giường nằm</td>
-                        <td class="py-3 px-4">200,000 VND</td>
-                        <td class="py-3 px-4">6 giờ</td>
+                        <td class="py-3 px-4">{{ route.route_name }}</td>
+                        <td class="py-3 px-4">{{ route.distance_km|floatformat:"0" }} km</td>
+                        <td class="py-3 px-4">{{ route.base_price }}.000 VND</td>
+                        <td class="py-3 px-4">{{ route.estimated_duration_minutes }} phút</td>
                     </tr>
-                    <tr>
-                        <td class="py-3 px-4">Nghệ An - Quảng Bình</td>
-                        <td class="py-3 px-4">Giường nằm cao cấp</td>
-                        <td class="py-3 px-4">250,000 VND</td>
-                        <td class="py-3 px-4">6 giờ</td>
-                    </tr>
-                    <tr>
-                        <td class="py-3 px-4">Nghệ An - Hà Nội</td>
-                        <td class="py-3 px-4">Giường nằm</td>
-                        <td class="py-3 px-4">250,000 VND</td>
-                        <td class="py-3 px-4">5 giờ</td>
-                    </tr>
-                    <tr>
-                        <td class="py-3 px-4">Nghệ An - Hà Nội</td>
-                        <td class="py-3 px-4">Giường nằm cao cấp</td>
-                        <td class="py-3 px-4">300,000 VND</td>
-                        <td class="py-3 px-4">5 giờ</td>
-                    </tr>
-                    <tr>
-                        <td class="py-3 px-4">Nghệ An - Đà Nẵng</td>
-                        <td class="py-3 px-4">Giường nằm</td>
-                        <td class="py-3 px-4">300,000 VND</td>
-                        <td class="py-3 px-4">8 giờ</td>
-                    </tr>
-                    <tr>
-                        <td class="py-3 px-4">Nghệ An - Hồ Chí Minh</td>
-                        <td class="py-3 px-4">Giường nằm cao cấp</td>
-                        <td class="py-3 px-4">500,000 VND</td>
-                        <td class="py-3 px-4">20 giờ</td>
-                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
