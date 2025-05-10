@@ -1,0 +1,166 @@
+{% extends 'booking/base.html' %}
+
+{% block title %}Chi tiết vé - Hải Hoàng Gia{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8 text-center">Chi tiết vé</h1>
+    
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Thông tin vé</h2>
+                <span class="{% if booking.status == 'confirmed' %}bg-green-100 text-green-800{% elif booking.status == 'pending' %}bg-yellow-100 text-yellow-800{% elif booking.status == 'cancelled' %}bg-red-100 text-red-800{% else %}bg-gray-100 text-gray-800{% endif %} text-sm font-medium px-3 py-1 rounded-full">
+                    {% if booking.status == 'confirmed' %}
+                        Đã xác nhận
+                    {% elif booking.status == 'pending' %}
+                        Đang chờ xác nhận
+                    {% elif booking.status == 'cancelled' %}
+                        Đã hủy
+                    {% else %}
+                        {{ booking.status }}
+                    {% endif %}
+                </span>
+            </div>
+            
+            <div class="border-t border-gray-200 pt-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Mã vé</p>
+                        <p class="font-bold">{{ booking.booking_code }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Họ tên khách hàng</p>
+                        <p class="font-bold">{{ booking.passenger_name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Số điện thoại</p>
+                        <p class="font-bold">{{ booking.passenger_phone }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Email</p>
+                        <p class="font-bold">{{ booking.passenger_email }}</p>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 mr-3 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span class="font-bold text-blue-600">HHG</span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold">{{ booking.trip.schedule.bus.bus_type }}</h3>
+                            <p class="text-sm text-gray-600">
+                                Hải Hoàng Gia
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center mb-4">
+                        <div class="text-center mr-6">
+                            <p class="font-bold text-lg">
+                                {{ booking.trip.schedule.departure_time|time:"H:i" }}
+                            </p>
+                            <p class="text-sm text-gray-600">{{ booking.trip.schedule.route.departure_station.province }}</p>
+                        </div>
+                        <div class="flex flex-col items-center mx-2">
+                            <div class="w-2 h-2 rounded-full bg-blue-600"></div>
+                            <div class="w-0.5 h-12 bg-gray-300"></div>
+                            <div class="w-2 h-2 rounded-full bg-blue-600"></div>
+                        </div>
+                        <div class="text-center ml-6">
+                            <p class="font-bold text-lg">{{ booking.trip.schedule.arrival_time|time:"H:i" }}</p>
+                            <p class="text-sm text-gray-600">{{ booking.trip.schedule.route.arrival_station.province }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">Ngày khởi hành</p>
+                            <p class="font-bold">{{ booking.trip.trip_date|date:"d-m-Y" }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">Vị trí ghế</p>
+                            <p class="font-bold">
+                                {% for seat in booking.seats.all %}
+                                    {{ seat.seat_number }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-600 mb-1">Tổng tiền</p>
+                            <p class="font-bold text-blue-600">{{ booking.total_price|floatformat:0 }} VND</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end">
+                    <a href="{% url 'research' %}?phone={{ booking.passenger_phone }}" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition-colors flex items-center justify-center mr-2">
+                        <i class="fas fa-arrow-left w-5 h-5 mr-2"></i>
+                        Quay lại
+                    </a>
+                    
+                    {% if booking.status != 'cancelled' %}
+                    <button 
+                        id="cancel-ticket-btn"
+                        class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors flex items-center justify-center"
+                    >
+                        <i class="fas fa-times w-5 h-5 mr-2"></i>
+                        Hủy vé
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Cancel Confirmation Modal (Hidden by default) -->
+        <div id="cancel-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg shadow-md p-6 max-w-md w-full mx-4">
+                <h3 class="font-bold text-lg mb-4">Xác nhận hủy vé</h3>
+                <p class="text-gray-600 mb-6">
+                    Bạn có chắc chắn muốn hủy vé này? Hành động này không thể hoàn tác.
+                </p>
+                <form method="post" action="{% url 'cancel_booking' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                    <div class="flex justify-end space-x-4">
+                        <button 
+                            type="button"
+                            id="cancel-modal-close"
+                            class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                        >
+                            Đóng
+                        </button>
+                        <button 
+                            type="submit"
+                            class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+                        >
+                            Xác nhận hủy
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cancelTicketBtn = document.getElementById('cancel-ticket-btn');
+        const cancelModal = document.getElementById('cancel-modal');
+        const cancelModalClose = document.getElementById('cancel-modal-close');
+        
+        if (cancelTicketBtn) {
+            cancelTicketBtn.addEventListener('click', function() {
+                cancelModal.classList.remove('hidden');
+            });
+        }
+        
+        cancelModalClose.addEventListener('click', function() {
+            cancelModal.classList.add('hidden');
+        });
+    });
+</script>
+{% endblock %}

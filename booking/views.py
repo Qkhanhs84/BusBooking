@@ -102,7 +102,27 @@ def services(request):
         'routes': routes,
     }
     return render(request, 'booking/services.html', context)
+
+def research(request):
+    if request.method == 'GET' and 'phone' in request.GET:
+        phone = request.GET.get('phone')
+        # Tìm tất cả các đặt vé có số điện thoại này
+        bookings = Booking.objects.filter(passenger_phone=phone)
+        
+        if bookings.exists():
+            context = {
+                'bookings': bookings,
+                'phone': phone,
+                'found': True
+            }
+        else:
+            context = {
+                'phone': phone,
+                'found': False
+            }
+        return render(request, "booking/research.html", context)
     
+    return render(request, "booking/research.html")
 
 def news(request):
     return render(request, 'booking/news.html')
@@ -148,3 +168,41 @@ def verify_email(request):
             "trip_id": trip_id,
         }
         return render(request, "booking/verify.html", context)
+
+
+def booking_detail(request, booking_id):
+    try:
+        booking = Booking.objects.get(id=booking_id)
+        context = {
+            'booking': booking,
+        }
+        return render(request, 'booking/booking_detail.html', context)
+    except Booking.DoesNotExist:
+        return redirect('research')
+
+@csrf_exempt
+def cancel_booking(request):
+    if request.method == 'POST':
+        booking_id = request.POST.get('booking_id')
+        try:
+            booking = Booking.objects.get(id=booking_id)
+            booking.status = 'cancelled'
+            booking.save()
+            
+            # Tạo yêu cầu hủy vé
+            CancellationRequest.objects.create(
+                booking=booking,
+                reason="Hủy bởi khách hàng",
+                status="approved"
+            )
+            
+            # Cập nhật trạng thái ghế
+            for seat in booking.seats.all():
+                seat.is_booked = False
+                seat.save()
+                
+            return redirect('research')
+        except Booking.DoesNotExist:
+            pass
+    
+    return redirect('research')
