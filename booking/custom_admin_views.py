@@ -118,6 +118,8 @@ BUSBOOKING
             print(f"Error sending email: {e}")
       # Chuyển hướng trở lại trang bookings
     return redirect('custom_admin_bookings')
+@login_required
+@user_passes_test(is_admin)
 def admin_statistics(request):
     # Get date from query parameter or use today's date
     date_str = request.GET.get('date')
@@ -167,7 +169,8 @@ def admin_statistics(request):
 
 
 # Thêm các hàm này vào file views.py hiện có
-
+@login_required
+@user_passes_test(is_admin)
 def admin_schedules(request):
     # Get all schedules
     schedules = Schedule.objects.all().select_related('route__departure_station', 'route__arrival_station', 'bus')
@@ -202,6 +205,8 @@ def admin_schedules(request):
     }
     
     return render(request, 'admin/admin-schedules.html', context)
+@login_required
+@user_passes_test(is_admin)
 # Thêm hàm để tạo xe mới
 def admin_add_bus(request):
     if request.method == 'POST':
@@ -245,7 +250,8 @@ def admin_add_bus(request):
         return redirect('admin_schedules')
     
     return redirect('admin_schedules')
-
+@login_required
+@user_passes_test(is_admin)
 def admin_add_schedule(request):
     if request.method == 'POST':
         # Process form data
@@ -279,7 +285,8 @@ def admin_add_schedule(request):
         return redirect('admin_schedules')
     
     return redirect('admin_schedules')
-
+@login_required
+@user_passes_test(is_admin)
 def admin_edit_schedule(request):
     if request.method == 'POST':
         schedule_id = request.POST.get('schedule_id')
@@ -312,7 +319,8 @@ def admin_edit_schedule(request):
         return redirect('admin_schedules')
     
     return redirect('admin_schedules')
-
+@login_required
+@user_passes_test(is_admin)
 def admin_delete_schedule(request):
     if request.method == 'POST':
         schedule_id = request.POST.get('schedule_id')
@@ -337,7 +345,8 @@ def admin_delete_schedule(request):
         return redirect('admin_schedules')
     
     return redirect('admin_schedules')
-
+@login_required
+@user_passes_test(is_admin)
 def admin_add_route(request):
     if request.method == 'POST':
         # Process form data
@@ -372,7 +381,8 @@ def admin_add_route(request):
         return redirect('admin_schedules')
     
     return redirect('admin_schedules')
-
+@login_required
+@user_passes_test(is_admin)
 def admin_get_schedule(request):
     schedule_id = request.GET.get('id')
     
