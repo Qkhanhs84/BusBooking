@@ -138,27 +138,7 @@ def services(request):
         'routes': routes,
     }
     return render(request, 'booking/services.html', context)
-
-def research(request):
-    if request.method == 'GET' and 'phone' in request.GET:
-        phone = request.GET.get('phone')
-        # Tìm tất cả các đặt vé có số điện thoại này
-        bookings = Booking.objects.filter(passenger_phone=phone)
-        
-        if bookings.exists():
-            context = {
-                'bookings': bookings,
-                'phone': phone,
-                'found': True
-            }
-        else:
-            context = {
-                'phone': phone,
-                'found': False
-            }
-        return render(request, "booking/research.html", context)
     
-    return render(request, "booking/research.html")
 
 def news(request):
     return render(request, 'booking/news.html')
