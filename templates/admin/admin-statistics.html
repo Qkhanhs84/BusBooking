@@ -1,0 +1,133 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+
+{% block title %}Thống kê - BusBooking Admin{% endblock %}
+
+{% block page_title %}Thống kê{% endblock %}
+
+{% block content %}
+<div class="date-filter">
+    <div class="date-input" id="datePicker">
+        <i class="far fa-calendar"></i>
+        <span id="selectedDate">{{ current_date|date:"d/m/Y" }}</span>
+    </div>
+    <span class="filter-info">Thống kê ngày {{ current_date|date:"d/m/Y" }}</span>
+</div>
+
+<!-- Thống kê tổng quan -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-title">Tổng số chuyến</div>
+        <div class="stat-value">{{ total_trips }}</div>
+        <div class="stat-description">chuyến xe trong ngày</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-title">Tổng số ghế đã đặt</div>
+        <div class="stat-value">{{ total_booked_seats }}</div>
+        <div class="stat-description">ghế đã được đặt</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-title">Tổng số ghế trống</div>
+        <div class="stat-value">{{ total_available_seats }}</div>
+        <div class="stat-description">ghế còn trống</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-title">Chuyến đã kín chỗ</div>
+        <div class="stat-value">{{ full_booked_trips }}</div>
+        <div class="stat-description">chuyến đã hết vé</div>
+    </div>
+</div>
+
+<!-- Chi tiết số ghế trống theo chuyến -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Chi tiết số ghế trống theo chuyến</div>
+        <div class="card-subtitle">Theo dõi số ghế trống của từng chuyến xe trong ngày</div>
+    </div>
+    <div class="table-container" style="box-shadow: none; border-radius: 0;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Tuyến đường</th>
+                    <th>Giờ khởi hành</th>
+                    <th>Tổng số ghế</th>
+                    <th>Đã đặt</th>
+                    <th>Còn trống</th>
+                    <th>Tỷ lệ lấp đầy</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trip in trips %}
+                <tr>
+                    <td>{{ trip.schedule.route.route_name }}</td>
+                    <td>{{ trip.schedule.departure_time }}</td>
+                    <td>{{ trip.schedule.bus.total_seats }}</td>
+                    <td>{{ trip.booked_seats }}</td>
+                    <td>{{ trip.available_seats }}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="progress-container" style="flex: 1;">
+                                {% if trip.occupancy_rate >= 90 %}
+                                <div class="progress-bar progress-red" style="width: {{ trip.occupancy_rate }}%;"></div>
+                                {% elif trip.occupancy_rate >= 70 %}
+                                <div class="progress-bar progress-yellow" style="width: {{ trip.occupancy_rate }}%;"></div>
+                                {% else %}
+                                <div class="progress-bar progress-green" style="width: {{ trip.occupancy_rate }}%;"></div>
+                                {% endif %}
+                            </div>
+                            <span>{{ trip.occupancy_rate }}%</span>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-4">Không có chuyến xe nào vào ngày đã chọn</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    // Date picker
+    const datePicker = document.getElementById('datePicker');
+    const selectedDateSpan = document.getElementById('selectedDate');
+    
+    datePicker.addEventListener('click', function() {
+        // Create the date input element
+        const dateInput = document.createElement('input');
+        dateInput.type = 'date';
+        dateInput.value = selectedDateSpan.textContent.trim(); // Set the current date as default value
+        
+        // Style the input to position it over the existing content
+        dateInput.style.position = 'absolute';
+        dateInput.style.top = datePicker.offsetTop + datePicker.offsetHeight + 'px';
+        dateInput.style.left = datePicker.offsetLeft + 'px';
+        dateInput.style.zIndex = 1000;
+        document.body.appendChild(dateInput);
+        dateInput.click();
+        // Trigger the change when the user selects a date
+        dateInput.addEventListener('change', function() {
+            const date = new Date(this.value);
+            const formattedDate = date.toLocaleDateString('vi-VN');
+            selectedDateSpan.textContent = formattedDate;
+            window.location.href = "{% url 'admin_statistics' %}?date=" + this.value;
+            });
+            
+            dateInput.click();
+        
+        // Close the date picker when clicking away
+        dateInput.addEventListener('blur', function() {
+            document.body.removeChild(dateInput);
+        });
+        
+        // Focus the date input so the browser displays the date picker
+        dateInput.focus();
+    });
+});
+</script>
+{% endblock %}

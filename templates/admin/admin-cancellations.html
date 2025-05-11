@@ -1,0 +1,259 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+
+{% block title %}Yêu cầu hủy vé - BusBooking Admin{% endblock %}
+
+{% block page_title %}Yêu cầu hủy vé{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Quản lý các yêu cầu hủy vé từ khách hàng</div>
+    </div>
+</div>
+
+<!-- Thống kê tổng quan -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-title">Tổng yêu cầu</div>
+        <div class="stat-value">{{ total_requests }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-title">Đang chờ xử lý</div>
+        <div class="stat-value">{{ pending_requests }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-title">Đã xử lý hôm nay</div>
+        <div class="stat-value">{{ processed_today }}</div>
+    </div>
+</div>
+
+<!-- Danh sách yêu cầu hủy vé -->
+<div class="card">
+    <div class="card-header">
+        <div class="card-title">Danh sách yêu cầu hủy vé</div>
+    </div>
+    <div class="table-container" style="box-shadow: none; border-radius: 0;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Mã đặt vé</th>
+                    <th>Khách hàng</th>
+                    <th>Chuyến xe</th>
+                    <th>Ngày đi</th>
+                    <th>Lý do hủy</th>
+                    <th>Ngày yêu cầu</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in cancellation_requests %}
+                <tr>
+                    <td>{{ request.booking.booking_code }}</td>
+                    <td>{{ request.booking.passenger_name }}</td>
+                    <td>{{ request.booking.trip.schedule.route.route_name }} ({{ request.booking.trip.schedule.departure_time }})</td>
+                    <td>{{ request.booking.trip.trip_date }}</td>
+                    <td>
+                        <button type="button" class="btn btn-link view-reason" data-id="{{ request.id }}" data-reason="{{ request.notes }}">
+                            Xem lý do
+                        </button>
+                    </td>
+                    <td>{{ request.request_time|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        {% if request.status == 'Pending' %}
+                        <span class="badge badge-pending">Đang chờ xử lý</span>
+                        {% elif request.status == 'Approved' %}
+                        <span class="badge badge-approved">Đã chấp nhận</span>
+                        {% else %}
+                        <span class="badge badge-rejected">Đã từ chối</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if request.status == 'Pending' %}
+                        <div class="action-buttons">
+                            <button class="btn btn-success approve-request" data-id="{{ request.id }}">Chấp nhận</button>
+                            <button class="btn btn-danger reject-request" data-id="{{ request.id }}">Từ chối</button>
+                        </div>
+                        {% else %}
+                        <button class="btn btn-secondary" disabled>Đã xử lý</button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center py-4">Không có yêu cầu hủy vé nào</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- Modal Xem lý do -->
+<div class="modal" id="viewReasonModal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h5 class="modal-title">Lý do hủy vé</h5>
+            <button type="button" class="modal-close" id="viewReasonModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p id="reasonText"></p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="viewReasonModalClose2">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xác nhận chấp nhận -->
+<div class="modal" id="approveRequestModal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h5 class="modal-title">Xác nhận chấp nhận</h5>
+            <button type="button" class="modal-close" id="approveRequestModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Bạn có chắc chắn muốn chấp nhận yêu cầu hủy vé này không?</p>
+            <p>Mã đặt vé: <span id="approve_booking_id"></span></p>
+            <form id="approveRequestForm" method="post" action="{% url 'admin_approve_cancellation' %}">
+                {% csrf_token %}
+                <input type="hidden" id="approve_request_id" name="request_id">
+                <div class="form-group">
+                    <label for="refund_amount" class="form-label required">Số tiền hoàn trả (VND)</label>
+                    <input type="number" class="form-control" id="refund_amount" name="refund_amount" required>
+                </div>
+                <div class="form-group">
+                    <label for="refund_method" class="form-label required">Phương thức hoàn tiền</label>
+                    <select class="form-control" id="refund_method" name="refund_method" required>
+                        <option value="BankTransfer">Chuyển khoản ngân hàng</option>
+                        <option value="AtStation">Tại quầy vé</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="approveRequestModalCancel">Hủy</button>
+            <button type="submit" form="approveRequestForm" class="btn btn-success">Chấp nhận</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xác nhận từ chối -->
+<div class="modal" id="rejectRequestModal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h5 class="modal-title">Xác nhận từ chối</h5>
+            <button type="button" class="modal-close" id="rejectRequestModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Bạn có chắc chắn muốn từ chối yêu cầu hủy vé này không?</p>
+            <p>Mã đặt vé: <span id="reject_booking_id"></span></p>
+            <form id="rejectRequestForm" method="post" action="{% url 'admin_reject_cancellation' %}">
+                {% csrf_token %}
+                <input type="hidden" id="reject_request_id" name="request_id">
+                <div class="form-group">
+                    <label for="reject_reason" class="form-label required">Lý do từ chối</label>
+                    <textarea class="form-control" id="reject_reason" name="reject_reason" rows="3" required></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="rejectRequestModalCancel">Hủy</button>
+            <button type="submit" form="rejectRequestForm" class="btn btn-danger">Từ chối</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // View Reason Modal
+        const viewReasonButtons = document.querySelectorAll('.view-reason');
+        const viewReasonModal = document.getElementById('viewReasonModal');
+        const viewReasonModalClose = document.getElementById('viewReasonModalClose');
+        const viewReasonModalClose2 = document.getElementById('viewReasonModalClose2');
+        const reasonText = document.getElementById('reasonText');
+        
+        viewReasonButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const reason = this.getAttribute('data-reason');
+                reasonText.textContent = reason || 'Không có lý do được cung cấp';
+                viewReasonModal.classList.add('show');
+            });
+        });
+        
+        viewReasonModalClose.addEventListener('click', function() {
+            viewReasonModal.classList.remove('show');
+        });
+        
+        viewReasonModalClose2.addEventListener('click', function() {
+            viewReasonModal.classList.remove('show');
+        });
+        
+        // Approve Request Modal
+        const approveButtons = document.querySelectorAll('.approve-request');
+        const approveRequestModal = document.getElementById('approveRequestModal');
+        const approveRequestModalClose = document.getElementById('approveRequestModalClose');
+        const approveRequestModalCancel = document.getElementById('approveRequestModalCancel');
+        
+        approveButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const requestId = this.getAttribute('data-id');
+                const bookingId = this.closest('tr').querySelector('td:first-child').textContent;
+                
+                document.getElementById('approve_booking_id').textContent = bookingId;
+                document.getElementById('approve_request_id').value = requestId;
+                
+                // Fetch booking details to get the price
+                fetch("{% url 'admin_get_booking' %}?id=" + requestId)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Set default refund amount (e.g., 70% of the total price)
+                        const refundAmount = Math.round(data.total_price * 0.7);
+                        document.getElementById('refund_amount').value = refundAmount;
+                    });
+                
+                approveRequestModal.classList.add('show');
+            });
+        });
+        
+        approveRequestModalClose.addEventListener('click', function() {
+            approveRequestModal.classList.remove('show');
+        });
+        
+        approveRequestModalCancel.addEventListener('click', function() {
+            approveRequestModal.classList.remove('show');
+        });
+        
+        // Reject Request Modal
+        const rejectButtons = document.querySelectorAll('.reject-request');
+        const rejectRequestModal = document.getElementById('rejectRequestModal');
+        const rejectRequestModalClose = document.getElementById('rejectRequestModalClose');
+        const rejectRequestModalCancel = document.getElementById('rejectRequestModalCancel');
+        
+        rejectButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const requestId = this.getAttribute('data-id');
+                const bookingId = this.closest('tr').querySelector('td:first-child').textContent;
+                
+                document.getElementById('reject_booking_id').textContent = bookingId;
+                document.getElementById('reject_request_id').value = requestId;
+                
+                rejectRequestModal.classList.add('show');
+            });
+        });
+        
+        rejectRequestModalClose.addEventListener('click', function() {
+            rejectRequestModal.classList.remove('show');
+        });
+        
+        rejectRequestModalCancel.addEventListener('click', function() {
+            rejectRequestModal.classList.remove('show');
+        });
+    });
+</script>
+{% endblock %}

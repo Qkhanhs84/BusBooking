@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý chuyến xe - Bus Booking</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+            color: white;
+            padding-top: 20px;
+        }
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            margin-bottom: 5px;
+        }
+        .sidebar .nav-link:hover {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .sidebar .nav-link i {
+            margin-right: 10px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .card-dashboard {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .card-dashboard .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            padding: 15px 20px;
+        }
+        .card-dashboard .card-body {
+            padding: 20px;
+        }
+        .badge-available {
+            background-color: #28a745;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .badge-low {
+            background-color: #ffc107;
+            color: #212529;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .badge-full {
+            background-color: #dc3545;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .form-label {
+            font-weight: 500;
+        }
+        .text-danger {
+            color: #dc3545;
+        }
+        .alert-success {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            animation: fadeOut 5s forwards;
+        }
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar">
+                <div class="d-flex align-items-center mb-4 px-3">
+                    <i class="fas fa-bus fs-4 me-2"></i>
+                    <h5 class="mb-0">BusBooking Admin</h5>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/admin/trips">
+                            <i class="fas fa-bus"></i> Quản lý chuyến xe
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/statistics">
+                            <i class="fas fa-chart-bar"></i> Thống kê
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/admin/cancellations">
+                            <i class="fas fa-ban"></i> Yêu cầu hủy vé
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 content">
+                <!-- Top Navigation -->
+                <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+                    <div class="container-fluid">
+                        <h4 class="mb-0">Quản lý chuyến xe</h4>
+                        <div class="d-flex">
+                            <div class="input-group me-3">
+                                <input type="text" class="form-control" placeholder="Tìm kiếm...">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            <div class="dropdown">
+                                <a class="btn btn-outline-secondary dropdown-toggle" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-user me-1"></i> Admin
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-user-circle me-2"></i>Hồ sơ</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+                
+                <!-- Success Alert (hidden by default) -->
+                <div class="alert alert-success alert-dismissible fade show d-none" role="alert" id="successAlert">
+                    <i class="fas fa-check-circle me-2"></i> Thêm chuyến xe thành công!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card card-dashboard">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted">Tổng số chuyến</h6>
+                                        <h3 class="mb-0" id="totalTrips">24</h3>
+                                    </div>
+                                    <div class="bg-primary bg-opacity-10 p-3 rounded">
+                                        <i class="fas fa-bus text-primary fs-4"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-dashboard">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted">Chuyến đang chạy</h6>
+                                        <h3 class="mb-0" id="activeTrips">18</h3>
+                                    </div>
+                                    <div class="bg-success bg-opacity-10 p-3 rounded">
+                                        <i class="fas fa-route text-success fs-4"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-dashboard">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted">Chuyến đã kín chỗ</h6>
+                                        <h3 class="mb-0" id="fullTrips">1</h3>
+                                    </div>
+                                    <div class="bg-danger bg-opacity-10 p-3 rounded">
+                                        <i class="fas fa-ban text-danger fs-4"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-dashboard">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted">Tỷ lệ lấp đầy</h6>
+                                        <h3 class="mb-0" id="occupancyRate">78%</h3>
+                                    </div>
+                                    <div class="bg-warning bg-opacity-10 p-3 rounded">
+                                        <i class="fas fa-percentage text-warning fs-4"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trips Table -->
+                <div class="card card-dashboard">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Danh sách chuyến xe</h5>
+                        <div class="d-flex align-items-center">
+                            <form id="filterForm" class="d-flex align-items-center">
+                                <input type="date" name="date" id="filterDate" class="form-control form-control-sm me-2">
+                                <button type="submit" class="btn btn-secondary btn-sm me-2">
+                                    <i class="fas fa-filter me-1"></i> Lọc
+                                </button>
+                            </form>
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addTripModal">
+                                <i class="fas fa-plus me-1"></i> Thêm chuyến
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Mã chuyến</th>
+                                        <th>Tuyến đường</th>
+                                        <th>Giờ khởi hành</th>
+                                        <th>Giờ đến</th>
+                                        <th>Ngày</th>
+                                        <th>Sức chứa</th>
+                                        <th>Đã đặt</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tripsTableBody">
+                                    <!-- Table rows will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Thêm Chuyến Xe -->
+                <div class="modal fade" id="addTripModal" tabindex="-1" aria-labelledby="addTripModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="addTripModalLabel">Thêm chuyến xe mới</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="addTripForm">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="route" class="form-label">Tuyến đường <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="route" name="route" placeholder="Hà Nội - Hải Phòng" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="tripDate" class="form-label">Ngày <span class="text-danger">*</span></label>
+                                            <input type="date" class="form-control" id="tripDate" name="trip_date" required>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="departureTime" class="form-label">Giờ khởi hành <span class="text-danger">*</span></label>
+                                            <input type="time" class="form-control" id="departureTime" name="departure_time" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="arrivalTime" class="form-label">Giờ đến <span class="text-danger">*</span></label>
+                                            <input type="time" class="form-control" id="arrivalTime" name="arrival_time" required>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <label for="totalSeats" class="form-label">Tổng số ghế <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="totalSeats" name="total_seats" value="45" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="price" class="form-label">Giá vé (VND) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="price" name="price" placeholder="150000" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="status" class="form-label">Trạng thái</label>
+                                            <select class="form-select" id="status" name="status">
+                                                <option value="active" selected>Hoạt động</option>
+                                                <option value="cancelled">Đã hủy</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-12">
+                                            <label for="description" class="form-label">Mô tả</label>
+                                            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Thông tin thêm về chuyến xe..."></textarea>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                <button type="button" class="btn btn-primary" id="saveTrip">Thêm chuyến</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Modal Chỉnh sửa Chuyến Xe -->
+                <div class="modal fade" id="editTripModal" tabindex="-1" aria-labelledby="editTripModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editTripModalLabel">Chỉnh sửa chuyến xe</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="editTripForm">
+                                    <input type="hidden" id="editTripId" name="trip_id">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="editRoute" class="form-label">Tuyến đường <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="editRoute" name="route" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="editTripDate" class="form-label">Ngày <span class="text-danger">*</span></label>
+                                            <input type="date" class="form-control" id="editTripDate" name="trip_date" required>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="editDepartureTime" class="form-label">Giờ khởi hành <span class="text-danger">*</span></label>
+                                            <input type="time" class="form-control" id="editDepartureTime" name="departure_time" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="editArrivalTime" class="form-label">Giờ đến <span class="text-danger">*</span></label>
+                                            <input type="time" class="form-control" id="editArrivalTime" name="arrival_time" required>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <label for="editTotalSeats" class="form-label">Tổng số ghế <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="editTotalSeats" name="total_seats" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="editBookedSeats" class="form-label">Số ghế đã đặt</label>
+                                            <input type="number" class="form-control" id="editBookedSeats" name="booked_seats">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="editPrice" class="form-label">Giá vé (VND) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="editPrice" name="price" required>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <label for="editStatus" class="form-label">Trạng thái</label>
+                                            <select class="form-select" id="editStatus" name="status">
+                                                <option value="active">Hoạt động</option>
+                                                <option value="cancelled">Đã hủy</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <label for="editDescription" class="form-label">Mô tả</label>
+                                            <textarea class="form-control" id="editDescription" name="description" rows="3"></textarea>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                <button type="button" class="btn btn-primary" id="updateTrip">Lưu thay đổi</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Modal Xác nhận xóa -->
+                <div class="modal fade" id="deleteTripModal" tabindex="-1" aria-labelledby="deleteTripModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteTripModalLabel">Xác nhận xóa</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Bạn có chắc chắn muốn xóa chuyến xe này không?</p>
+                                <p>Mã chuyến: <span id="deleteTripId"></span></p>
+                                <p>Tuyến đường: <span id="deleteTripRoute"></span></p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                <button type="button" class="btn btn-danger" id="confirmDelete">Xóa</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sample data for demonstration
+        let tripsData = [
+            {
+                id: 'TR-1001',
+                route: 'Hà Nội - Hải Phòng',
+                departureTime: '07:30',
+                arrivalTime: '09:30',
+                tripDate: '2025-04-01',
+                totalSeats: 45,
+                bookedSeats: 32,
+                price: 150000,
+                status: 'active',
+                description: ''
+            },
+            {
+                id: 'TR-1002',
+                route: 'Hà Nội - Nam Định',
+                departureTime: '08:00',
+                arrivalTime: '10:30',
+                tripDate: '2025-04-01',
+                totalSeats: 45,
+                bookedSeats: 45,
+                price: 120000,
+                status: 'active',
+                description: ''
+            },
+            {
+                id: 'TR-1003',
+                route: 'Hà Nội - Thanh Hóa',
+                departureTime: '09:15',
+                arrivalTime: '12:30',
+                tripDate: '2025-04-01',
+                totalSeats: 45,
+                bookedSeats: 28,
+                price: 250000,
+                status: 'active',
+                description: ''
+            },
+            {
+                id: 'TR-1004',
+                route: 'Hà Nội - Ninh Bình',
+                departureTime: '10:00',
+                arrivalTime: '12:00',
+                tripDate: '2025-04-01',
+                totalSeats: 45,
+                bookedSeats: 15,
+                price: 180000,
+                status: 'active',
+                description: ''
+            },
+            {
+                id: 'TR-1005',
+                route: 'Hà Nội - Hải Dương',
+                departureTime: '11:30',
+                arrivalTime: '13:00',
+                tripDate: '2025-04-01',
+                totalSeats: 45,
+                bookedSeats: 40,
+                price: 100000,
+                status: 'active',
+                description: ''
+            }
+        ];
+
+        // Format date for display
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('vi-VN');
+        }
+
+        // Format currency
+        function formatCurrency(amount) {
+            return amount.toLocaleString('vi-VN');
+        }
+
+        // Get status badge
+        function getStatusBadge(status, totalSeats, bookedSeats) {
+            if (status === 'cancelled') {
+                return '<span class="badge-full">Đã hủy</span>';
+            }
+            
+            if (bookedSeats >= totalSeats) {
+                return '<span class="badge-full">Đã kín chỗ</span>';
+            } else if (totalSeats - bookedSeats <= 10) {
+                return '<span class="badge-low">Đang chạy</span>';
+            } else {
+                return '<span class="badge-available">Đang chạy</span>';
+            }
+        }
+
+        // Render trips table
+        function renderTripsTable(trips) {
+            const tableBody = document.getElementById('tripsTableBody');
+            tableBody.innerHTML = '';
+            
+            if (trips.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="text-center">Không có chuyến xe nào vào ngày đã chọn</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            trips.forEach(trip => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${trip.id}</td>
+                    <td>${trip.route}</td>
+                    <td>${trip.departureTime}</td>
+                    <td>${trip.arrivalTime}</td>
+                    <td>${formatDate(trip.tripDate)}</td>
+                    <td>${trip.totalSeats}</td>
+                    <td>${trip.bookedSeats}</td>
+                    <td>${getStatusBadge(trip.status, trip.totalSeats, trip.bookedSeats)}</td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary edit-trip" data-id="${trip.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-trip" data-id="${trip.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            // Add event listeners to edit and delete buttons
+            document.querySelectorAll('.edit-trip').forEach(button => {
+                button.addEventListener('click', function() {
+                    const tripId = this.getAttribute('data-id');
+                    openEditModal(tripId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-trip').forEach(button => {
+                button.addEventListener('click', function() {
+                    const tripId = this.getAttribute('data-id');
+                    openDeleteModal(tripId);
+                });
+            });
+        }
+
+        // Update statistics
+        function updateStatistics(trips) {
+            const totalTrips = trips.length;
+            const activeTrips = trips.filter(trip => trip.status === 'active').length;
+            const fullTrips = trips.filter(trip => trip.bookedSeats >= trip.totalSeats).length;
+            
+            let totalSeats = 0;
+            let totalBookedSeats = 0;
+            
+            trips.forEach(trip => {
+                totalSeats += trip.totalSeats;
+                totalBookedSeats += trip.bookedSeats;
+            });
+            
+            const occupancyRate = totalSeats > 0 ? Math.round((totalBookedSeats / totalSeats) * 100) : 0;
+            
+            document.getElementById('totalTrips').textContent = totalTrips;
+            document.getElementById('activeTrips').textContent = activeTrips;
+            document.getElementById('fullTrips').textContent = fullTrips;
+            document.getElementById('occupancyRate').textContent = occupancyRate + '%';
+        }
+
+        // Filter trips by date
+        function filterTripsByDate(date) {
+            return tripsData.filter(trip => trip.tripDate === date);
+        }
+
+        // Open edit modal
+        function openEditModal(tripId) {
+            const trip = tripsData.find(t => t.id === tripId);
+            if (!trip) return;
+            
+            document.getElementById('editTripId').value = trip.id;
+            document.getElementById('editRoute').value = trip.route;
+            document.getElementById('editTripDate').value = trip.tripDate;
+            document.getElementById('editDepartureTime').value = trip.departureTime;
+            document.getElementById('editArrivalTime').value = trip.arrivalTime;
+            document.getElementById('editTotalSeats').value = trip.totalSeats;
+            document.getElementById('editBookedSeats').value = trip.bookedSeats;
+            document.getElementById('editPrice').value = trip.price;
+            document.getElementById('editStatus').value = trip.status;
+            document.getElementById('editDescription').value = trip.description;
+            
+            const editModal = new bootstrap.Modal(document.getElementById('editTripModal'));
+            editModal.show();
+        }
+
+        // Open delete modal
+        function openDeleteModal(tripId) {
+            const trip = tripsData.find(t => t.id === tripId);
+            if (!trip) return;
+            
+            document.getElementById('deleteTripId').textContent = trip.id;
+            document.getElementById('deleteTripRoute').textContent = trip.route;
+            
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteTripModal'));
+            deleteModal.show();
+        }
+
+        // Show success alert
+        function showSuccessAlert(message) {
+            const alert = document.getElementById('successAlert');
+            alert.textContent = message;
+            alert.classList.remove('d-none');
+            
+            setTimeout(() => {
+                alert.classList.add('d-none');
+            }, 5000);
+        }
+
+        // Document ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set today's date as default for filter and new trip
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            document.getElementById('filterDate').value = formattedDate;
+            document.getElementById('tripDate').value = formattedDate;
+            
+            // Initial render
+            const filteredTrips = filterTripsByDate(formattedDate);
+            renderTripsTable(filteredTrips);
+            updateStatistics(filteredTrips);
+            
+            // Filter form submit
+            document.getElementById('filterForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const filterDate = document.getElementById('filterDate').value;
+                const filteredTrips = filterTripsByDate(filterDate);
+                renderTripsTable(filteredTrips);
+                updateStatistics(filteredTrips);
+            });
+            
+            // Add new trip
+            document.getElementById('saveTrip').addEventListener('click', function() {
+                const form = document.getElementById('addTripForm');
+                
+                // Form validation
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+                
+                // Get form data
+                const route = document.getElementById('route').value;
+                const tripDate = document.getElementById('tripDate').value;
+                const departureTime = document.getElementById('departureTime').value;
+                const arrivalTime = document.getElementById('arrivalTime').value;
+                const totalSeats = parseInt(document.getElementById('totalSeats').value);
+                const price = parseInt(document.getElementById('price').value);
+                const status = document.getElementById('status').value;
+                const description = document.getElementById('description').value;
+                
+                // Generate new ID
+                const newId = 'TR-' + (1000 + tripsData.length + 1);
+                
+                // Create new trip object
+                const newTrip = {
+                    id: newId,
+                    route: route,
+                    departureTime: departureTime,
+                    arrivalTime: arrivalTime,
+                    tripDate: tripDate,
+                    totalSeats: totalSeats,
+                    bookedSeats: 0,
+                    price: price,
+                    status: status,
+                    description: description
+                };
+                
+                // Add to data array
+                tripsData.push(newTrip);
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addTripModal'));
+                modal.hide();
+                
+                // Reset form
+                form.reset();
+                document.getElementById('tripDate').value = tripDate; // Keep the current filter date
+                
+                // Update table and stats
+                const filteredTrips = filterTripsByDate(tripDate);
+                renderTripsTable(filteredTrips);
+                updateStatistics(filteredTrips);
+                
+                // Show success message
+                showSuccessAlert('Thêm chuyến xe thành công!');
+            });
+            
+            // Update trip
+            document.getElementById('updateTrip').addEventListener('click', function() {
+                const form = document.getElementById('editTripForm');
+                
+                // Form validation
+                if (!form.checkValidity()) {
+                    form.reportValidity();
+                    return;
+                }
+                
+                // Get form data
+                const tripId = document.getElementById('editTripId').value;
+                const route = document.getElementById('editRoute').value;
+                const tripDate = document.getElementById('editTripDate').value;
+                const departureTime = document.getElementById('editDepartureTime').value;
+                const arrivalTime = document.getElementById('editArrivalTime').value;
+                const totalSeats = parseInt(document.getElementById('editTotalSeats').value);
+                const bookedSeats = parseInt(document.getElementById('editBookedSeats').value);
+                const price = parseInt(document.getElementById('editPrice').value);
+                const status = document.getElementById('editStatus').value;
+                const description = document.getElementById('editDescription').value;
+                
+                // Update trip in data array
+                const tripIndex = tripsData.findIndex(t => t.id === tripId);
+                if (tripIndex !== -1) {
+                    tripsData[tripIndex] = {
+                        id: tripId,
+                        route: route,
+                        departureTime: departureTime,
+                        arrivalTime: arrivalTime,
+                        tripDate: tripDate,
+                        totalSeats: totalSeats,
+                        bookedSeats: bookedSeats,
+                        price: price,
+                        status: status,
+                        description: description
+                    };
+                }
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editTripModal'));
+                modal.hide();
+                
+                // Update table and stats
+                const currentFilterDate = document.getElementById('filterDate').value;
+                const filteredTrips = filterTripsByDate(currentFilterDate);
+                renderTripsTable(filteredTrips);
+                updateStatistics(filteredTrips);
+                
+                // Show success message
+                showSuccessAlert('Cập nhật chuyến xe thành công!');
+            });
+            
+            // Delete trip
+            document.getElementById('confirmDelete').addEventListener('click', function() {
+                const tripId = document.getElementById('deleteTripId').textContent;
+                
+                // Remove trip from data array
+                tripsData = tripsData.filter(t => t.id !== tripId);
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('deleteTripModal'));
+                modal.hide();
+                
+                // Update table and stats
+                const currentFilterDate = document.getElementById('filterDate').value;
+                const filteredTrips = filterTripsByDate(currentFilterDate);
+                renderTripsTable(filteredTrips);
+                updateStatistics(filteredTrips);
+                
+                // Show success message
+                showSuccessAlert('Xóa chuyến xe thành công!');
+            });
+        });
+    </script>
+</body>
+</html>

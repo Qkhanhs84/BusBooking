@@ -1,0 +1,771 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+
+{% block title %}Quản lý lịch trình - BusBooking Admin{% endblock %}
+
+{% block page_title %}Quản lý lịch trình{% endblock %}
+
+{% block extra_css %}
+.filter-bar {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-item {
+    flex: 1;
+    min-width: 200px;
+}
+
+.time-input {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.time-input label {
+    min-width: 80px;
+}
+
+.schedule-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.status-active {
+    background-color: var(--green-color);
+}
+
+.status-inactive {
+    background-color: var(--red-color);
+}
+
+.bus-select-container, .route-select-container {
+    position: relative;
+}
+
+.add-new-bus, .add-new-route {
+    position: absolute;
+    right: 0;
+    top: -25px;
+    font-size: 0.875rem;
+    color: #2563eb;
+    cursor: pointer;
+}
+
+.add-new-bus:hover, .add-new-route:hover {
+    text-decoration: underline;
+}
+
+.current-bus-option {
+    background-color: #e5e7eb;
+    font-weight: bold;
+}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="filter-bar">
+        <div class="filter-item">
+            <label for="routeFilter" class="form-label">Tuyến đường</label>
+            <select class="form-control" id="routeFilter">
+                <option value="">Tất cả tuyến đường</option>
+                {% for route in routes %}
+                <option value="{{ route.id }}">{{ route.route_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-item">
+            <label for="busTypeFilter" class="form-label">Loại xe</label>
+            <select class="form-control" id="busTypeFilter">
+                <option value="">Tất cả loại xe</option>
+                {% for bus_type, bus_type_display in bus_types %}
+                <option value="{{ bus_type }}">{{ bus_type_display }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-item">
+            <label for="statusFilter" class="form-label">Trạng thái</label>
+            <select class="form-control" id="statusFilter">
+                <option value="">Tất cả trạng thái</option>
+                <option value="active">Đang hoạt động</option>
+                <option value="inactive">Không hoạt động</option>
+            </select>
+        </div>
+    </div>
+    <button type="button" class="btn btn-primary" id="addScheduleBtn">
+        <i class="fas fa-plus me-2"></i> Thêm lịch trình
+    </button>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tuyến đường</th>
+                <th>Xe</th>
+                <th>Giờ khởi hành</th>
+                <th>Giờ đến</th>
+                <th>Thời gian di chuyển</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody id="scheduleTableBody">
+            {% for schedule in schedules %}
+            <tr data-route="{{ schedule.route.id }}" data-bus-type="{{ schedule.bus.bus_type }}" data-status="{% if schedule.is_active %}active{% else %}inactive{% endif %}">
+                <td>{{ schedule.id }}</td>
+                <td>{{ schedule.route.route_name }}</td>
+                <td>{{ schedule.bus.license_plate }} ({{ schedule.bus.get_bus_type_display }})</td>
+                <td>{{ schedule.departure_time|time:"H:i" }}</td>
+                <td>{{ schedule.arrival_time|time:"H:i" }}</td>
+                <td>{{ schedule.route.compute_time }}</td>
+                <td>
+                    <div class="schedule-status">
+                        <span class="status-indicator {% if schedule.is_active %}status-active{% else %}status-inactive{% endif %}"></span>
+                        {% if schedule.is_active %}
+                        <span>Đang hoạt động</span>
+                        {% else %}
+                        <span>Không hoạt động</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="action-buttons">
+                    <button class="btn btn-icon btn-edit edit-schedule" data-id="{{ schedule.id }}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-icon btn-delete delete-schedule" data-id="{{ schedule.id }}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center py-4">Không có lịch trình nào</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- Modal Thêm Lịch Trình -->
+<div class="modal" id="addScheduleModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Thêm lịch trình mới</h5>
+            <button type="button" class="modal-close" id="addScheduleModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="addScheduleForm" method="post" action="{% url 'admin_add_schedule' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="route" class="form-label required">Tuyến đường</label>
+                    <div class="route-select-container">
+                        <span class="add-new-route" id="addNewRouteBtn">+ Thêm tuyến đường mới</span>
+                        <select class="form-control" id="route" name="route" required>
+                            <option value="">-- Chọn tuyến đường --</option>
+                            {% for route in routes %}
+                            <option value="{{ route.id }}" data-duration="{{ route.estimated_duration_minutes }}">
+                                {{ route.route_name }} ({{ route.departure_station.station_name }} - {{ route.arrival_station.station_name }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if routes.count == 0 %}
+                        <div class="text-danger mt-1">
+                            <small>Không có tuyến đường nào. Vui lòng thêm tuyến đường mới.</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="bus" class="form-label required">Xe</label>
+                    <div class="bus-select-container">
+                        <span class="add-new-bus" id="addNewBusBtn">+ Thêm xe mới</span>
+                        <select class="form-control" id="bus" name="bus" required>
+                            <option value="">-- Chọn xe --</option>
+                            {% for bus in available_buses %}
+                            <option value="{{ bus.id }}">
+                                {{ bus.license_plate }} ({{ bus.get_bus_type_display }}) - {{ bus.total_seats }} ghế
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if available_buses.count == 0 %}
+                        <div class="text-danger mt-1">
+                            <small>Không có xe nào khả dụng. Vui lòng thêm xe mới.</small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="departure_time" class="form-label required">Giờ khởi hành</label>
+                        <input type="time" class="form-control" id="departure_time" name="departure_time" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="arrival_time" class="form-label required">Giờ đến</label>
+                        <input type="time" class="form-control" id="arrival_time" name="arrival_time" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="is_active" name="is_active" checked>
+                        <label class="form-check-label" for="is_active">Đang hoạt động</label>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="addScheduleModalCancel">Hủy</button>
+            <button type="submit" form="addScheduleForm" class="btn btn-primary">Thêm lịch trình</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm Tuyến Đường Mới -->
+<div class="modal" id="addRouteModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Thêm tuyến đường mới</h5>
+            <button type="button" class="modal-close" id="addRouteModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="addRouteForm" method="post" action="{% url 'admin_add_route' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="route_name" class="form-label required">Tên tuyến đường</label>
+                    <input type="text" class="form-control" id="route_name" name="route_name" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="departure_station" class="form-label required">Trạm đi</label>
+                        <select class="form-control" id="departure_station" name="departure_station" required>
+                            <option value="">-- Chọn trạm đi --</option>
+                            {% for station in stations %}
+                            <option value="{{ station.id }}">
+                                {{ station.station_name }} ({{ station.get_province_display }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="arrival_station" class="form-label required">Trạm đến</label>
+                        <select class="form-control" id="arrival_station" name="arrival_station" required>
+                            <option value="">-- Chọn trạm đến --</option>
+                            {% for station in stations %}
+                            <option value="{{ station.id }}">
+                                {{ station.station_name }} ({{ station.get_province_display }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="base_price" class="form-label required">Giá vé cơ bản (VND)</label>
+                        <input type="number" class="form-control" id="base_price" name="base_price" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="distance_km" class="form-label required">Khoảng cách (km)</label>
+                        <input type="number" class="form-control" id="distance_km" name="distance_km" min="0" step="0.1" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="estimated_duration_minutes" class="form-label required">Thời gian di chuyển (phút)</label>
+                    <input type="number" class="form-control" id="estimated_duration_minutes" name="estimated_duration_minutes" min="0" required>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="addRouteModalCancel">Hủy</button>
+            <button type="submit" form="addRouteForm" class="btn btn-primary">Thêm tuyến đường</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm Xe Mới -->
+<div class="modal" id="addBusModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Thêm xe mới</h5>
+            <button type="button" class="modal-close" id="addBusModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="addBusForm" method="post" action="{% url 'admin_add_bus' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="license_plate" class="form-label required">Biển số xe</label>
+                    <input type="text" class="form-control" id="license_plate" name="license_plate" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bus_type" class="form-label required">Loại xe</label>
+                        <select class="form-control" id="bus_type" name="bus_type" required>
+                            {% for bus_type, bus_type_display in bus_types %}
+                            <option value="{{ bus_type }}">{{ bus_type_display }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="total_seats" class="form-label required">Số ghế</label>
+                        <input type="number" class="form-control" id="total_seats" name="total_seats" min="1" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="surcharge" class="form-label">Phụ thu (VND)</label>
+                        <select class="form-control" id="surcharge" name="surcharge">
+                            <option value="0">0</option>
+                            <option value="50">50.000</option>
+                            <option value="100">100.000</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="amenities" class="form-label">Tiện nghi</label>
+                    <textarea class="form-control" id="amenities" name="amenities" rows="3"></textarea>
+                    <small class="form-text text-muted">Nhập các tiện nghi của xe, mỗi tiện nghi cách nhau bởi dấu phẩy.</small>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="addBusModalCancel">Hủy</button>
+            <button type="submit" form="addBusForm" class="btn btn-primary">Thêm xe</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Chỉnh sửa Lịch Trình -->
+<div class="modal" id="editScheduleModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Chỉnh sửa lịch trình</h5>
+            <button type="button" class="modal-close" id="editScheduleModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editScheduleForm" method="post" action="{% url 'admin_edit_schedule' %}">
+                {% csrf_token %}
+                <input type="hidden" id="edit_schedule_id" name="schedule_id">
+                <div class="form-group">
+                    <label for="edit_route" class="form-label required">Tuyến đường</label>
+                    <select class="form-control" id="edit_route" name="route" required>
+                        <option value="">-- Chọn tuyến đường --</option>
+                        {% for route in routes %}
+                        <option value="{{ route.id }}" data-duration="{{ route.estimated_duration_minutes }}">
+                            {{ route.route_name }} ({{ route.departure_station.station_name }} - {{ route.arrival_station.station_name }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit_bus" class="form-label required">Xe</label>
+                    <select class="form-control" id="edit_bus" name="bus" required>
+                        <option value="">-- Chọn xe --</option>
+                        <!-- Options will be populated dynamically via JavaScript -->
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit_departure_time" class="form-label required">Giờ khởi hành</label>
+                        <input type="time" class="form-control" id="edit_departure_time" name="departure_time" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_arrival_time" class="form-label required">Giờ đến</label>
+                        <input type="time" class="form-control" id="edit_arrival_time" name="arrival_time" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="edit_is_active" name="is_active">
+                        <label class="form-check-label" for="edit_is_active">Đang hoạt động</label>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="editScheduleModalCancel">Hủy</button>
+            <button type="submit" form="editScheduleForm" class="btn btn-primary">Lưu thay đổi</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xác nhận xóa -->
+<div class="modal" id="deleteScheduleModal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h5 class="modal-title">Xác nhận xóa</h5>
+            <button type="button" class="modal-close" id="deleteScheduleModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Bạn có chắc chắn muốn xóa lịch trình này không?</p>
+            <p>Mã lịch trình: <span id="delete_schedule_id"></span></p>
+            <p>Tuyến đường: <span id="delete_schedule_route"></span></p>
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Lưu ý: Việc xóa lịch trình sẽ ảnh hưởng đến các chuyến xe đã được tạo từ lịch trình này.
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="deleteScheduleModalCancel">Hủy</button>
+            <form id="deleteScheduleForm" method="post" action="{% url 'admin_delete_schedule' %}">
+                {% csrf_token %}
+                <input type="hidden" id="delete_schedule_id_input" name="schedule_id">
+                <button type="submit" class="btn btn-danger">Xóa</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filtering
+        const routeFilter = document.getElementById('routeFilter');
+        const busTypeFilter = document.getElementById('busTypeFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const scheduleTableBody = document.getElementById('scheduleTableBody');
+        
+        function applyFilters() {
+            const routeValue = routeFilter.value;
+            const busTypeValue = busTypeFilter.value;
+            const statusValue = statusFilter.value;
+            
+            const rows = scheduleTableBody.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                if (row.querySelector('td[colspan]')) {
+                    // This is the "No schedules" row
+                    return;
+                }
+                
+                const routeMatch = !routeValue || row.getAttribute('data-route') === routeValue;
+                const busTypeMatch = !busTypeValue || row.getAttribute('data-bus-type') === busTypeValue;
+                const statusMatch = !statusValue || row.getAttribute('data-status') === statusValue;
+                
+                if (routeMatch && busTypeMatch && statusMatch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Check if all rows are hidden
+            let allHidden = true;
+            rows.forEach(row => {
+                if (row.style.display !== 'none' && !row.querySelector('td[colspan]')) {
+                    allHidden = false;
+                }
+            });
+            
+            // Show "No schedules" message if all rows are hidden
+            let noSchedulesRow = scheduleTableBody.querySelector('tr.no-schedules');
+            if (allHidden) {
+                if (!noSchedulesRow) {
+                    noSchedulesRow = document.createElement('tr');
+                    noSchedulesRow.className = 'no-schedules';
+                    const td = document.createElement('td');
+                    td.colSpan = 8;
+                    td.className = 'text-center py-4';
+                    td.textContent = 'Không có lịch trình nào phù hợp với bộ lọc';
+                    noSchedulesRow.appendChild(td);
+                    scheduleTableBody.appendChild(noSchedulesRow);
+                }
+            } else if (noSchedulesRow) {
+                noSchedulesRow.remove();
+            }
+        }
+        
+        routeFilter.addEventListener('change', applyFilters);
+        busTypeFilter.addEventListener('change', applyFilters);
+        statusFilter.addEventListener('change', applyFilters);
+        
+        // Add Schedule Modal
+        const addScheduleBtn = document.getElementById('addScheduleBtn');
+        const addScheduleModal = document.getElementById('addScheduleModal');
+        const addScheduleModalClose = document.getElementById('addScheduleModalClose');
+        const addScheduleModalCancel = document.getElementById('addScheduleModalCancel');
+        
+        addScheduleBtn.addEventListener('click', function() {
+            addScheduleModal.classList.add('show');
+        });
+        
+        addScheduleModalClose.addEventListener('click', function() {
+            addScheduleModal.classList.remove('show');
+        });
+        
+        addScheduleModalCancel.addEventListener('click', function() {
+            addScheduleModal.classList.remove('show');
+        });
+        
+        // Add Route Modal
+        const addNewRouteBtn = document.getElementById('addNewRouteBtn');
+        const addRouteModal = document.getElementById('addRouteModal');
+        const addRouteModalClose = document.getElementById('addRouteModalClose');
+        const addRouteModalCancel = document.getElementById('addRouteModalCancel');
+        
+        addNewRouteBtn.addEventListener('click', function() {
+            // Hide the schedule modal
+            addScheduleModal.classList.remove('show');
+            
+            // Show the route modal
+            addRouteModal.classList.add('show');
+            
+            // Set up station selection validation
+            const departureStationSelect = document.getElementById('departure_station');
+            const arrivalStationSelect = document.getElementById('arrival_station');
+            
+            function validateStations() {
+                if (departureStationSelect.value && arrivalStationSelect.value) {
+                    if (departureStationSelect.value === arrivalStationSelect.value) {
+                        alert('Trạm đi và trạm đến không được trùng nhau!');
+                        arrivalStationSelect.value = '';
+                    } else {
+                        // Auto-generate route name
+                        const departureName = departureStationSelect.options[departureStationSelect.selectedIndex].text.split(' (')[0];
+                        const arrivalName = arrivalStationSelect.options[arrivalStationSelect.selectedIndex].text.split(' (')[0];
+                        document.getElementById('route_name').value = `${departureName} - ${arrivalName}`;
+                    }
+                }
+            }
+            
+            departureStationSelect.addEventListener('change', validateStations);
+            arrivalStationSelect.addEventListener('change', validateStations);
+            
+            // Set up distance and duration relationship
+            const distanceInput = document.getElementById('distance_km');
+            const durationInput = document.getElementById('estimated_duration_minutes');
+            
+            distanceInput.addEventListener('change', function() {
+                // Estimate duration based on distance (assuming average speed of 60 km/h)
+                const distance = parseFloat(this.value);
+                if (!isNaN(distance)) {
+                    // Convert distance to minutes (60 km/h = 1 km per minute)
+                    const estimatedDuration = Math.round(distance * 60 / 60);
+                    durationInput.value = estimatedDuration;
+                }
+            });
+        });
+        
+        addRouteModalClose.addEventListener('click', function() {
+            addRouteModal.classList.remove('show');
+            // Show the schedule modal again
+            addScheduleModal.classList.add('show');
+        });
+        
+        addRouteModalCancel.addEventListener('click', function() {
+            addRouteModal.classList.remove('show');
+            // Show the schedule modal again
+            addScheduleModal.classList.add('show');
+        });
+        
+        // Add Bus Modal
+        const addNewBusBtn = document.getElementById('addNewBusBtn');
+        const addBusModal = document.getElementById('addBusModal');
+        const addBusModalClose = document.getElementById('addBusModalClose');
+        const addBusModalCancel = document.getElementById('addBusModalCancel');
+        
+        addNewBusBtn.addEventListener('click', function() {
+            // Hide the schedule modal
+            addScheduleModal.classList.remove('show');
+            
+            // Show the bus modal
+            addBusModal.classList.add('show');
+            
+            // Set default values based on bus type
+            const busTypeSelect = document.getElementById('bus_type');
+            const totalSeatsInput = document.getElementById('total_seats');
+            
+            // Set default seats based on bus type
+            busTypeSelect.addEventListener('change', function() {
+                const busType = this.value;
+                if (busType === 'Sitting') {
+                    totalSeatsInput.value = '45';
+                } else if (busType === 'Sleeper') {
+                    totalSeatsInput.value = '36';
+                } else if (busType === 'SleeperVIP') {
+                    totalSeatsInput.value = '30';
+                }
+            });
+            
+            // Trigger change event to set initial value
+            busTypeSelect.dispatchEvent(new Event('change'));
+        });
+        
+        addBusModalClose.addEventListener('click', function() {
+            addBusModal.classList.remove('show');
+            // Show the schedule modal again
+            addScheduleModal.classList.add('show');
+        });
+        
+        addBusModalCancel.addEventListener('click', function() {
+            addBusModal.classList.remove('show');
+            // Show the schedule modal again
+            addScheduleModal.classList.add('show');
+        });
+        
+        // Auto-calculate arrival time based on departure time and route duration
+        const departureTimeInput = document.getElementById('departure_time');
+        const arrivalTimeInput = document.getElementById('arrival_time');
+        const routeSelect = document.getElementById('route');
+        
+        function calculateArrivalTime() {
+            const departureTime = departureTimeInput.value;
+            if (!departureTime || !routeSelect.value) return;
+            
+            const selectedOption = routeSelect.options[routeSelect.selectedIndex];
+            const durationMinutes = parseInt(selectedOption.getAttribute('data-duration'));
+            
+            if (isNaN(durationMinutes)) return;
+            
+            // Parse departure time
+            const [hours, minutes] = departureTime.split(':').map(Number);
+            
+            // Calculate arrival time
+            let arrivalHours = hours + Math.floor((minutes + durationMinutes) / 60);
+            let arrivalMinutes = (minutes + durationMinutes) % 60;
+            
+            // Handle next day
+            arrivalHours = arrivalHours % 24;
+            
+            // Format arrival time
+            const formattedArrivalHours = arrivalHours.toString().padStart(2, '0');
+            const formattedArrivalMinutes = arrivalMinutes.toString().padStart(2, '0');
+            
+            arrivalTimeInput.value = `${formattedArrivalHours}:${formattedArrivalMinutes}`;
+        }
+        
+        departureTimeInput.addEventListener('change', calculateArrivalTime);
+        routeSelect.addEventListener('change', calculateArrivalTime);
+        
+        // Same for edit modal
+        const editDepartureTimeInput = document.getElementById('edit_departure_time');
+        const editArrivalTimeInput = document.getElementById('edit_arrival_time');
+        const editRouteSelect = document.getElementById('edit_route');
+        
+        function calculateEditArrivalTime() {
+            const departureTime = editDepartureTimeInput.value;
+            if (!departureTime || !editRouteSelect.value) return;
+            
+            const selectedOption = editRouteSelect.options[editRouteSelect.selectedIndex];
+            const durationMinutes = parseInt(selectedOption.getAttribute('data-duration'));
+            
+            if (isNaN(durationMinutes)) return;
+            
+            // Parse departure time
+            const [hours, minutes] = departureTime.split(':').map(Number);
+            
+            // Calculate arrival time
+            let arrivalHours = hours + Math.floor((minutes + durationMinutes) / 60);
+            let arrivalMinutes = (minutes + durationMinutes) % 60;
+            
+            // Handle next day
+            arrivalHours = arrivalHours % 24;
+            
+            // Format arrival time
+            const formattedArrivalHours = arrivalHours.toString().padStart(2, '0');
+            const formattedArrivalMinutes = arrivalMinutes.toString().padStart(2, '0');
+            
+            editArrivalTimeInput.value = `${formattedArrivalHours}:${formattedArrivalMinutes}`;
+        }
+        
+        editDepartureTimeInput.addEventListener('change', calculateEditArrivalTime);
+        editRouteSelect.addEventListener('change', calculateEditArrivalTime);
+        
+        // Edit Schedule Modal
+        const editButtons = document.querySelectorAll('.edit-schedule');
+        const editScheduleModal = document.getElementById('editScheduleModal');
+        const editScheduleModalClose = document.getElementById('editScheduleModalClose');
+        const editScheduleModalCancel = document.getElementById('editScheduleModalCancel');
+        const editBusSelect = document.getElementById('edit_bus');
+        
+        editButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const scheduleId = this.getAttribute('data-id');
+                
+                // Fetch schedule data from the server
+                fetch("{% url 'admin_get_schedule' %}?id=" + scheduleId)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('edit_schedule_id').value = data.id;
+                        document.getElementById('edit_route').value = data.route_id;
+                        document.getElementById('edit_departure_time').value = data.departure_time;
+                        document.getElementById('edit_arrival_time').value = data.arrival_time;
+                        document.getElementById('edit_is_active').checked = data.is_active;
+                        
+                        // Clear existing options
+                        editBusSelect.innerHTML = '<option value="">-- Chọn xe --</option>';
+                        
+                        // Add available buses
+                        data.available_buses.forEach(bus => {
+                            const option = document.createElement('option');
+                            option.value = bus.id;
+                            option.textContent = `${bus.license_plate} (${bus.bus_type}) - ${bus.total_seats} ghế`;
+                            
+                            if (bus.is_current) {
+                                option.classList.add('current-bus-option');
+                                option.textContent += ' (Xe hiện tại)';
+                            }
+                            
+                            editBusSelect.appendChild(option);
+                        });
+                        
+                        // Set selected bus
+                        editBusSelect.value = data.bus_id;
+                        
+                        editScheduleModal.classList.add('show');
+                    });
+            });
+        });
+        
+        editScheduleModalClose.addEventListener('click', function() {
+            editScheduleModal.classList.remove('show');
+        });
+        
+        editScheduleModalCancel.addEventListener('click', function() {
+            editScheduleModal.classList.remove('show');
+        });
+        
+        // Delete Schedule Modal
+        const deleteButtons = document.querySelectorAll('.delete-schedule');
+        const deleteScheduleModal = document.getElementById('deleteScheduleModal');
+        const deleteScheduleModalClose = document.getElementById('deleteScheduleModalClose');
+        const deleteScheduleModalCancel = document.getElementById('deleteScheduleModalCancel');
+        
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const scheduleId = this.getAttribute('data-id');
+                
+                // Fetch schedule data from the server
+                fetch("{% url 'admin_get_schedule' %}?id=" + scheduleId)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('delete_schedule_id').textContent = data.id;
+                        document.getElementById('delete_schedule_route').textContent = data.route_name;
+                        document.getElementById('delete_schedule_id_input').value = data.id;
+                        
+                        deleteScheduleModal.classList.add('show');
+                    });
+            });
+        });
+        
+        deleteScheduleModalClose.addEventListener('click', function() {
+            deleteScheduleModal.classList.remove('show');
+        });
+        
+        deleteScheduleModalCancel.addEventListener('click', function() {
+            deleteScheduleModal.classList.remove('show');
+        });
+    });
+</script>
+{% endblock %}

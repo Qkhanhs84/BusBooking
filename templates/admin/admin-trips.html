@@ -1,0 +1,352 @@
+{% extends 'admin/base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Quản lý chuyến xe - BusBooking Admin{% endblock %}
+
+{% block page_title %}Quản lý hệ thống đặt vé xe{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="date-filter">
+        <div class="date-input" id="datePicker">
+            <i class="far fa-calendar"></i>
+            <span id="selectedDate">{{ current_date|date:"d/m/Y" }}</span>
+        </div>
+        <span class="filter-info">Hiển thị {{ trips|length }} chuyến xe ngày {{ current_date|date:"d/m/Y" }}</span>
+    </div>
+    <button type="button" class="btn btn-primary" id="addTripBtn">
+        <i class="fas fa-plus me-2"></i> Thêm chuyến xe
+    </button>
+</div>
+
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tuyến đường</th>
+                <th>Khởi hành</th>
+                <th>Đến</th>
+                <th>Ghế trống</th>
+                <th>Giá vé (VND)</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for trip in trips %}
+            <tr>
+                <td>{{ trip.id }}</td>
+                <td>{{ trip.schedule.route.route_name }}</td>
+                <td>{{ trip.schedule.departure_time }}</td>
+                <td>{{ trip.schedule.arrival_time }}</td>
+                <td>
+                    {% if trip.available_seats == 0 %}
+                    <span class="seats seats-red">0/{{ trip.schedule.bus.total_seats }}</span>
+                    <span class="badge-full">Hết chỗ</span>
+                    {% elif trip.available_seats <= 5 %}
+                    <span class="seats seats-yellow">{{ trip.available_seats }}/{{ trip.schedule.bus.total_seats }}</span>
+                    {% else %}
+                    <span class="seats seats-green">{{ trip.available_seats }}/{{ trip.schedule.bus.total_seats }}</span>
+                    {% endif %}
+                </td>
+                {% load humanize %}
+                <td>{{ trip.compute_price|floatformat:"0"|intcomma }}</td>
+                <td>
+                    {% if trip.status == 'Scheduled' %}
+                    <span class="badge badge-active">Hoạt động</span>
+                    {% elif trip.status == 'Departed' %}
+                    <span class="badge badge-pending">Đã khởi hành</span>
+                    {% elif trip.status == 'Arrived' %}
+                    <span class="badge badge-approved">Đã đến</span>
+                    {% else %}
+                    <span class="badge badge-rejected">Đã hủy</span>
+                    {% endif %}
+                </td>
+                <td class="action-buttons">
+                    <button class="btn btn-icon btn-edit edit-trip" data-id="{{ trip.id }}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-icon btn-delete delete-trip" data-id="{{ trip.id }}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center py-4">Không có chuyến xe nào vào ngày đã chọn</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- Modal Thêm Chuyến Xe -->
+<div class="modal" id="addTripModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Thêm chuyến xe mới</h5>
+            <button type="button" class="modal-close" id="addTripModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="addTripForm" method="post" action="{% url 'admin_add_trip' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="schedule" class="form-label required">Lịch trình</label>
+                    <select class="form-control" id="schedule" name="schedule" required>
+                        <option value="">-- Chọn lịch trình --</option>
+                        {% for schedule in schedules %}
+                        <option value="{{ schedule.id }}">
+                            {{ schedule.route.route_name }} - {{ schedule.departure_time }} đến {{ schedule.arrival_time }} - {{ schedule.bus.license_plate }} ({{ schedule.bus.get_bus_type_display }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="trip_date" class="form-label required">Ngày</label>
+                        <input type="date" class="form-control" id="trip_date" name="trip_date" value="{{ current_date|date:'Y-m-d' }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="available_seats" class="form-label required">Số ghế trống</label>
+                        <input type="number" class="form-control" id="available_seats" name="available_seats" max="schedule.bus.license_plate }} {{ schedule.bus.get_total_seats" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="status" class="form-label">Trạng thái</label>
+                    <select class="form-control" id="status" name="status">
+                        <option value="Scheduled" selected>Scheduled</option>
+                        <option value="Departed">Departed</option>
+                        <option value="Arrived">Arrived</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="addTripModalCancel">Hủy</button>
+            <button type="submit" form="addTripForm" class="btn btn-primary">Thêm chuyến</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Chỉnh sửa Chuyến Xe -->
+<div class="modal" id="editTripModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Chỉnh sửa chuyến xe</h5>
+            <button type="button" class="modal-close" id="editTripModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editTripForm" method="post" action="{% url 'admin_edit_trip' %}">
+                {% csrf_token %}
+                <input type="hidden" id="edit_trip_id" name="trip_id">
+                <div class="form-group">
+                    <label for="edit_schedule" class="form-label required">Lịch trình</label>
+                    <select class="form-control" id="edit_schedule" name="schedule" required>
+                        <option value="">-- Chọn lịch trình --</option>
+                        {% for schedule in schedules %}
+                        <option value="{{ schedule.id }}">
+                            {{ schedule.route.route_name }} - {{ schedule.departure_time }} đến {{ schedule.arrival_time }} - {{ schedule.bus.license_plate }} ({{ schedule.bus.get_bus_type_display }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="edit_trip_date" class="form-label required">Ngày</label>
+                        <input type="date" class="form-control" id="edit_trip_date" name="trip_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit_available_seats" class="form-label required">Số ghế trống</label>
+                        <input type="number" class="form-control" id="edit_available_seats" name="available_seats" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="edit_status" class="form-label">Trạng thái</label>
+                    <select class="form-control" id="edit_status" name="status">
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="Departed">Departed</option>
+                        <option value="Arrived">Arrived</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="editTripModalCancel">Hủy</button>
+            <button type="submit" form="editTripForm" class="btn btn-primary">Lưu thay đổi</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Xác nhận xóa -->
+<div class="modal" id="deleteTripModal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h5 class="modal-title">Xác nhận xóa</h5>
+            <button type="button" class="modal-close" id="deleteTripModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Bạn có chắc chắn muốn xóa chuyến xe này không?</p>
+            <p>Mã chuyến: <span id="delete_trip_id"></span></p>
+            <p>Tuyến đường: <span id="delete_trip_route"></span></p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="deleteTripModalCancel">Hủy</button>
+            <form id="deleteTripForm" method="post" action="{% url 'admin_delete_trip' %}">
+                {% csrf_token %}
+                <input type="hidden" id="delete_trip_id_input" name="trip_id">
+                <button type="submit" class="btn btn-danger">Xóa</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    // Date picker
+    const datePicker = document.getElementById('datePicker');
+    const selectedDateSpan = document.getElementById('selectedDate');
+    
+    datePicker.addEventListener('click', function() {
+        // Create the date input element
+        const dateInput = document.createElement('input');
+        dateInput.type = 'date';
+        dateInput.value = selectedDateSpan.textContent.trim(); // Set the current date as default value
+        
+        // Style the input to position it over the existing content
+        dateInput.style.position = 'absolute';
+        dateInput.style.top = datePicker.offsetTop + datePicker.offsetHeight + 'px';
+        dateInput.style.left = datePicker.offsetLeft + 'px';
+        dateInput.style.zIndex = 1000;
+        document.body.appendChild(dateInput);
+        
+        // Trigger the change when the user selects a date
+        dateInput.addEventListener('change', function() {
+            const date = new Date(this.value);
+            const formattedDate = date.toLocaleDateString('vi-VN');
+            selectedDateSpan.textContent = formattedDate;
+
+            // Redirect to the trips page with the selected date
+            window.location.href = "{% url 'admin_trips' %}?date=" + this.value;
+        });
+        
+        // Close the date picker when clicking away
+        dateInput.addEventListener('blur', function() {
+            document.body.removeChild(dateInput);
+        });
+        
+        // Focus the date input so the browser displays the date picker
+        dateInput.focus();
+    });
+
+        
+        // Add Trip Modal
+        const addTripBtn = document.getElementById('addTripBtn');
+        const addTripModal = document.getElementById('addTripModal');
+        const addTripModalClose = document.getElementById('addTripModalClose');
+        const addTripModalCancel = document.getElementById('addTripModalCancel');
+        
+        addTripBtn.addEventListener('click', function() {
+            addTripModal.classList.add('show');
+            
+            // Set default available seats based on selected schedule
+            const scheduleSelect = document.getElementById('schedule');
+            scheduleSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption.value) {
+                    const requestId = selectedOption.value;
+                    fetch("{% url 'total_seats' %}?id=" + requestId)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Set default refund amount (e.g., 70% of the total price)
+                        const totalSeats = data.total_seats; 
+                        console.log(totalSeats)
+                        document.getElementById('available_seats').value = totalSeats;
+                        document.getElementById('available_seats').max = totalSeats;
+                    });
+                    
+                }
+            });
+        });
+        
+        addTripModalClose.addEventListener('click', function() {
+            addTripModal.classList.remove('show');
+        });
+        
+        addTripModalCancel.addEventListener('click', function() {
+            addTripModal.classList.remove('show');
+        });
+        
+        // Edit Trip Modal
+        const editButtons = document.querySelectorAll('.edit-trip');
+        const editTripModal = document.getElementById('editTripModal');
+        const editTripModalClose = document.getElementById('editTripModalClose');
+        const editTripModalCancel = document.getElementById('editTripModalCancel');
+        
+        editButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const tripId = this.getAttribute('data-id');
+                
+                // Fetch trip data from the server
+                fetch("{% url 'admin_get_trip' %}?id=" + tripId)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('edit_trip_id').value = data.id;
+                        document.getElementById('edit_schedule').value = data.schedule_id;
+                        document.getElementById('edit_trip_date').value = data.trip_date;
+                        document.getElementById('edit_available_seats').value = data.available_seats;
+                        document.getElementById('edit_available_seats').max = data.total_seats;
+                        document.getElementById('edit_status').value = data.status;
+                        
+                        editTripModal.classList.add('show');
+                    });
+            });
+        });
+        
+        editTripModalClose.addEventListener('click', function() {
+            editTripModal.classList.remove('show');
+        });
+        
+        editTripModalCancel.addEventListener('click', function() {
+            editTripModal.classList.remove('show');
+        });
+        
+        // Delete Trip Modal
+        const deleteButtons = document.querySelectorAll('.delete-trip');
+        const deleteTripModal = document.getElementById('deleteTripModal');
+        const deleteTripModalClose = document.getElementById('deleteTripModalClose');
+        const deleteTripModalCancel = document.getElementById('deleteTripModalCancel');
+        
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const tripId = this.getAttribute('data-id');
+                
+                // Fetch trip data from the server
+                fetch("{% url 'admin_get_trip' %}?id=" + tripId)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('delete_trip_id').textContent = data.id;
+                        document.getElementById('delete_trip_route').textContent = data.route_name;
+                        document.getElementById('delete_trip_id_input').value = data.id;
+                        
+                        deleteTripModal.classList.add('show');
+                    });
+            });
+        });
+        
+        deleteTripModalClose.addEventListener('click', function() {
+            deleteTripModal.classList.remove('show');
+        });
+        
+        deleteTripModalCancel.addEventListener('click', function() {
+            deleteTripModal.classList.remove('show');
+        });
+    });
+</script>
+{% endblock %}
