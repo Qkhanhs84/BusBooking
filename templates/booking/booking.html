@@ -100,8 +100,8 @@
                                         
                                     <button
                                         type="button"
-                                        class="p-2 rounded text-center {% if i == 5 or i == 12 %}bg-red-500 text-white cursor-not-allowed{% else %}bg-gray-300 hover:bg-yellow-500{% endif %}"
-                                        {% if i == 5 or i == 12 %}disabled{% endif %}
+                                        class="p-2 rounded text-center {% if seat.status == 'Booked' %}bg-red-500 text-white cursor-not-allowed{% else %}bg-gray-300 hover:bg-yellow-500{% endif %}"
+                                        {% if seat.status == 'Booked' %}disabled{% endif %}
                                         onclick="selectSeat(this, {{ seat.id }})"
                                         data-seat="{{ seat.seat.seat_number }}"
                                     >
@@ -113,37 +113,43 @@
                             </div>
                         {% else %}
                             <div class="grid grid-cols-7 gap-2">
-                                {% for i in bed_range %}
-                                    {% with forloop.counter0 as i %}
-                                        {% if forloop.counter == 15 %}
-                                            <div class="col-span-6 h-8"></div>
-                                            {% if forloop.counter == 15 %}
-                                                <button
-                                                    type="button"
-                                                    class="p-2 rounded text-center bg-gray-300 hover:bg-yellow-500"
-                                                    onclick="selectSeat(this, 29)"
-                                                    data-seat="29"
-                                                >
-                                                <i class="fas fa-couch"></i> 29
-                                                
-                                                </button>
-                                            {% endif %} 
-                                        {% endif %} 
-                                        {% if forloop.counter <= 28 %}
-                                            <button
-                                                type="button"
-                                                class="p-2 rounded text-center {% if i == 5 or i == 12 %}bg-red-500 text-white cursor-not-allowed{% else %}bg-gray-300 hover:bg-yellow-500{% endif %}"
-                                                {% if i == 5 or i == 12 %}disabled{% endif %}
-                                                onclick="selectSeat(this, {{ forloop.counter }})"
-                                                data-seat="{{ forloop.counter }}"
-                                            >
-                                                <i class="fas fa-couch"></i> {{ forloop.counter }}
-                                            </button>
-                                        {% endif %}
-                                    {% endwith %}
+                                {% for seat in seats %}
+                                    {% if forloop.counter == 15 %}
+                                        <div class="col-span-6 h-8"></div>
+                                    {% endif %} 
+                                    <button
+                                        type="button"
+                                        class="p-2 rounded text-center {% if seat.status == 'Booked' %}bg-red-500 text-white cursor-not-allowed{% else %}bg-gray-300 hover:bg-yellow-500{% endif %}"
+                                        {% if seat.status == 'Booked' %}disabled{% endif %}
+                                        onclick="selectSeat(this, {{ seat.id }})"
+                                        data-seat="{{ seat.seat.seat_number }}"
+                                    >
+                                        <i class="fas fa-couch"></i> {{ seat.seat.seat_number }}
+                                    </button>
                                 {% endfor %}
                             </div>
                         {% endif %}
+                    {% else %}
+                    <div class="grid grid-cols-8 gap-2">
+                        {% for seat in seats %}
+                            
+                            {% if seat.seat.seat_number == 'S17' %}
+                                <div class="col-span-8 h-8"></div>
+                            {% endif %} 
+                                
+                            <button
+                                type="button"
+                                class="p-2 rounded text-center {% if seat.status == 'Booked' %}bg-red-500 text-white cursor-not-allowed{% else %}bg-gray-300 hover:bg-yellow-500{% endif %}"
+                                {% if seat.status == 'Booked' %}disabled{% endif %}
+                                onclick="selectSeat(this, {{ seat.id }})"
+                                data-seat="{{ seat.seat.seat_number }}"
+                            >
+                                <i class="fa-solid fa-bed"></i> {{ seat.seat.seat_number }}
+                            </button>
+                                
+                            
+                        {% endfor %}
+                    </div>
                     {% endif %}
                     
                         
@@ -161,7 +167,7 @@
                                 type="radio"
                                 id="payment-cash"
                                 name="payment_method"
-                                value="cash"
+                                value="AtStation"
                                 class="h-4 w-4 text-blue-600"
                                 checked
                             />
@@ -177,7 +183,7 @@
                                 type="radio"
                                 id="payment-bank"
                                 name="payment_method"
-                                value="bank"
+                                value="QR"
                                 class="h-4 w-4 text-blue-600"
                             />
                             <label
@@ -258,7 +264,7 @@
                     </div>
                     <div class="flex justify-between font-bold text-lg">
                         <span>Tổng cộng:</span>
-                        <span>{{ trip.compute_price }}.000 VNĐ</span>
+                        <span id = "totalPrice" >0 VNĐ</span>
                     </div>
                 </div>
                 
@@ -275,8 +281,11 @@
 {% block scripts %}
 <script>
     let selectedSeats = [];
+    const seatPrice = {{ trip.compute_price }}
+
     
     function selectSeat(element, id) {
+        
         if (element.disabled) return;
         
         if (element.classList.contains('bg-blue-500')) {
@@ -292,6 +301,11 @@
         }
         
         document.getElementById('selected_seats').value = selectedSeats.join(',');
+        updateTotalPrice();
+    }
+    function updateTotalPrice() {
+        const totalPrice = selectedSeats.length * seatPrice; ;
+        document.getElementById('totalPrice').innerText = totalPrice + '.000 VNĐ';
     }
     function validatePhone() {
         const phoneInput = document.getElementById("passenger_phone");

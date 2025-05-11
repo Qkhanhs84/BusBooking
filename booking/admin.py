@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import  BusStation,Bus,Route,Schedule,Trip,Seat,Booking,CancellationRequest,SeatTrip
+from .models import  BusStation,Bus,Route,Schedule,Trip,Seat,Booking,CancellationRequest,SeatTrip,BookingSeat
 
 
 admin.site.register(BusStation)
@@ -11,6 +11,7 @@ admin.site.register(Seat)
 admin.site.register(Booking)
 admin.site.register(CancellationRequest)
 admin.site.register(SeatTrip)
+admin.site.register(BookingSeat)
 
 
 
