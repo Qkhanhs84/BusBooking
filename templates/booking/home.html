@@ -100,7 +100,7 @@
         {% for route in popular_routes %}
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
             <div class="h-40 bg-gray-200 relative flex items-center justify-center">
-                <span class="text-2xl font-bold text-gray-500">{{route.route_name}}</span>
+                <img src="/static/images/home/popular_trip_{{forloop.counter}}.png"></img>
             </div>
             <div class="p-4">
                 <h3 class="font-bold text-lg">{{ route.route_name }} </h3>
