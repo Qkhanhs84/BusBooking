@@ -515,26 +515,21 @@
         <nav>
             <ul>
                 <li class="nav-item">
-                    <a class="nav-link {% if active_page == 'trips' %}active{% endif %}" href="{% url 'admin_trips' %}">
-                        Quản lý chuyến xe
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link {% if active_page == 'statistics' %}active{% endif %}"
-                        href="{% url 'admin_statistics' %}">
+                        href="{% url 'custom_admin_statistics' %}">
                         Thống kê
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if active_page == 'cancellations' %}active{% endif %}"
-                        href="{% url 'admin_cancellations' %}">
-                        Yêu cầu hủy vé
+                    <a class="nav-link {% if active_page == 'schedules' %}active{% endif %}"
+                        href="{% url 'custom_admin_schedules' %}">
+                        Quản lý lịch trình
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if active_page == 'schedules' %}active{% endif %}"
-                        href="{% url 'admin_schedules' %}">
-                        Quản lý lịch trình
+                    <a class="nav-link {% if active_page == 'bookings' %}active{% endif %}"
+                        href="{% url 'custom_admin_bookings' %}">
+                        Quản lý booking
                     </a>
                 </li>
             </ul>

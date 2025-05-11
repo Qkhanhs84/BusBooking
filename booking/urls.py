@@ -1,4 +1,6 @@
 from django.urls import path
+
+from booking import custom_admin_views
 from . import views
 
 
@@ -13,27 +15,22 @@ urlpatterns = [
     path('news/', views.news, name='news'),
     path('send-otp/', views.send_otp, name='send_otp'),
     path('verify_email/', views.verify_email, name='verify_email'),
-    path('admin/trips/', views.admin_trips, name='admin_trips'),
-    path('admin/statistics/', views.admin_statistics, name='admin_statistics'),
-    path('admin/cancellations/', views.admin_cancellations, name='admin_cancellations'),
-    path('admin/trips/add/', views.admin_add_trip, name='admin_add_trip'),
-    path('admin/trips/edit/', views.admin_edit_trip, name='admin_edit_trip'),
-    path('admin/trips/delete/', views.admin_delete_trip, name='admin_delete_trip'),
-    path('admin/trips/get/', views.admin_get_trip, name='admin_get_trip'),
-    path('admin/bookings/get/', views.admin_get_booking, name='admin_get_booking'),
-    path('admin/cancellations/approve/', views.admin_approve_cancellation, name='admin_approve_cancellation'),
-    path('admin/cancellations/reject/', views.admin_reject_cancellation, name='admin_reject_cancellation'),
-    path('admin/trips/total_seats', views.admin_get_total_seats, name='total_seats'),
+    path('custom_admin/statistics/', custom_admin_views.admin_statistics, name='custom_admin_statistics'),
+    # path('admin/trips/total_seats', views.admin_get_total_seats, name='total_seats'),
     # Thêm các URL này vào urlpatterns trong file urls.py hiện có
 
-path('admin/schedules/', views.admin_schedules, name='admin_schedules'),
-path('admin/schedules/add/', views.admin_add_schedule, name='admin_add_schedule'),
-path('admin/schedules/edit/', views.admin_edit_schedule, name='admin_edit_schedule'),
-path('admin/schedules/delete/', views.admin_delete_schedule, name='admin_delete_schedule'),
-path('admin/schedules/get/', views.admin_get_schedule, name='admin_get_schedule'),
+path('custom-admin/schedules/', custom_admin_views.admin_schedules, name='custom_admin_schedules'),
+path('custom-admin/schedules/add/', custom_admin_views.admin_add_schedule, name='custom_admin_add_schedule'),
+path('custom-admin/schedules/edit/', custom_admin_views.admin_edit_schedule, name='custom_admin_edit_schedule'),
+path('custom-admin/schedules/delete/', custom_admin_views.admin_delete_schedule, name='custom_admin_delete_schedule'),
+path('custom-admin/schedules/get/', custom_admin_views.admin_get_schedule, name='custom_admin_get_schedule'),
 # Thêm URL này vào urlpatterns trong file urls.py hiện có
-path('admin/buses/add/', views.admin_add_bus, name='admin_add_bus'),
+path('custom-admin/buses/add/', custom_admin_views.admin_add_bus, name='custom_admin_add_bus'),
 # Thêm URL này vào urlpatterns trong file urls.py hiện có
-path('admin/routes/add/', views.admin_add_route, name='admin_add_route'),
+path('custom-admin/routes/add/', custom_admin_views.admin_add_route, name='custom_admin_add_route'),
+ path('custom-admin/', custom_admin_views.custom_admin_login, name='custom_admin_login'),
+    # path('custom-admin/dashboard/', custom_admin_views.custom_admin_dashboard, name='custom_admin_dashboard'),
+    path('custom-admin/bookings/', custom_admin_views.custom_admin_bookings, name='custom_admin_bookings'),
+    path('custom-admin/confirm-payment/<str:booking_code>/', custom_admin_views.custom_admin_confirm_payment, name='custom_admin_confirm_payment'),
 ]
 

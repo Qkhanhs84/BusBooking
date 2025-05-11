@@ -115,7 +115,7 @@
             const date = new Date(this.value);
             const formattedDate = date.toLocaleDateString('vi-VN');
             selectedDateSpan.textContent = formattedDate;
-            window.location.href = "{% url 'admin_statistics' %}?date=" + this.value;
+            window.location.href = "{% url 'custom_admin_statistics' %}?date=" + this.value;
             });
             
             dateInput.click();

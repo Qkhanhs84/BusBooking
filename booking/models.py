@@ -102,6 +102,32 @@ class Trip(models.Model):
         base_price = self.schedule.route.base_price
         surcharge = self.schedule.bus.surcharge
         return base_price + surcharge
+        
+    def get_available_seats(self):
+        """Tính toán số ghế còn trống thực sự dựa trên số ghế đã đặt"""
+        # Đếm số ghế đã đặt (có status là 'Booked')
+        booked_seats_count = SeatTrip.objects.filter(
+            trip=self, 
+            status='Booked'
+        ).count()
+        
+        # Tổng số ghế của xe
+        total_seats = self.schedule.bus.total_seats
+        
+        # Số ghế còn trống
+        return total_seats - booked_seats_count
+
+    def update_available_seats(self):
+        """Cập nhật trường available_seats dựa trên số ghế đã đặt"""
+        booked_seats_count = SeatTrip.objects.filter(
+            trip=self, 
+            status='Booked'
+        ).count()
+        
+        total_seats = self.schedule.bus.total_seats
+        self.available_seats = total_seats - booked_seats_count
+        self.save(update_fields=['available_seats'])
+        
     def __str__(self):
         return f"{self.schedule} on {self.trip_date}"
 
@@ -124,7 +150,6 @@ class Seat(models.Model):
 class Booking(models.Model):
     BOOKING_STATUS = [
         ('Pending', 'Pending'),
-        ('Confirmed', 'Confirmed'),
         ('Cancelled', 'Cancelled'),
         ('Completed', 'Completed'),
     ]
@@ -132,18 +157,16 @@ class Booking(models.Model):
     PAYMENT_METHODS = [
         ('QR', 'QR'),
         ('AtStation', 'At Station'),
-        ('Refunded', 'Refunded'),
+        
     ]
     
     PAYMENT_STATUS = [
         ('Pending', 'Pending'),
         ('Paid', 'Paid'),
         ('Failed', 'Failed'),
-        ('Refunded', 'Refunded'),
     ]
-
+    
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE)
-    seat = models.ForeignKey(Seat, on_delete=models.CASCADE)
     pickup_station = models.ForeignKey(BusStation, on_delete=models.CASCADE, related_name='pickups')
     dropoff_station = models.ForeignKey(BusStation, on_delete=models.CASCADE, related_name='dropoffs')
     booking_code = models.CharField(max_length=20, unique=True)
@@ -206,4 +229,14 @@ class SeatTrip(models.Model):
 
     def __str__(self):
         return f"Trip {self.trip.id} - Seat {self.seat.seat_number} - {self.get_status_display()}"
+
+class BookingSeat(models.Model):
+    booking = models.ForeignKey('Booking', on_delete=models.CASCADE, related_name='booking_seats')
+    seat = models.ForeignKey(Seat, on_delete=models.CASCADE)
+    
+    class Meta:
+        unique_together = ['booking', 'seat']
+        
+    def __str__(self):
+        return f"{self.booking.booking_code} - Seat {self.seat.seat_number}"
 

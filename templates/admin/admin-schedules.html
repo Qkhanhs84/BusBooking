@@ -167,7 +167,7 @@
             <button type="button" class="modal-close" id="addScheduleModalClose">&times;</button>
         </div>
         <div class="modal-body">
-            <form id="addScheduleForm" method="post" action="{% url 'admin_add_schedule' %}">
+            <form id="addScheduleForm" method="post" action="{% url 'custom_admin_add_schedule' %}">
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="route" class="form-label required">Tuyến đường</label>
@@ -240,7 +240,7 @@
             <button type="button" class="modal-close" id="addRouteModalClose">&times;</button>
         </div>
         <div class="modal-body">
-            <form id="addRouteForm" method="post" action="{% url 'admin_add_route' %}">
+            <form id="addRouteForm" method="post" action="{% url 'custom_admin_add_route' %}">
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="route_name" class="form-label required">Tên tuyến đường</label>
@@ -301,7 +301,7 @@
             <button type="button" class="modal-close" id="addBusModalClose">&times;</button>
         </div>
         <div class="modal-body">
-            <form id="addBusForm" method="post" action="{% url 'admin_add_bus' %}">
+            <form id="addBusForm" method="post" action="{% url 'custom_admin_add_bus' %}">
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="license_plate" class="form-label required">Biển số xe</label>
@@ -353,7 +353,7 @@
             <button type="button" class="modal-close" id="editScheduleModalClose">&times;</button>
         </div>
         <div class="modal-body">
-            <form id="editScheduleForm" method="post" action="{% url 'admin_edit_schedule' %}">
+            <form id="editScheduleForm" method="post" action="{% url 'custom_admin_edit_schedule' %}">
                 {% csrf_token %}
                 <input type="hidden" id="edit_schedule_id" name="schedule_id">
                 <div class="form-group">
@@ -417,7 +417,7 @@
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" id="deleteScheduleModalCancel">Hủy</button>
-            <form id="deleteScheduleForm" method="post" action="{% url 'admin_delete_schedule' %}">
+            <form id="deleteScheduleForm" method="post" action="{% url 'custom_admin_delete_schedule' %}">
                 {% csrf_token %}
                 <input type="hidden" id="delete_schedule_id_input" name="schedule_id">
                 <button type="submit" class="btn btn-danger">Xóa</button>
@@ -694,7 +694,7 @@
                 const scheduleId = this.getAttribute('data-id');
                 
                 // Fetch schedule data from the server
-                fetch("{% url 'admin_get_schedule' %}?id=" + scheduleId)
+                fetch("{% url 'custom_admin_get_schedule' %}?id=" + scheduleId)
                     .then(response => response.json())
                     .then(data => {
                         document.getElementById('edit_schedule_id').value = data.id;
@@ -747,7 +747,7 @@
                 const scheduleId = this.getAttribute('data-id');
                 
                 // Fetch schedule data from the server
-                fetch("{% url 'admin_get_schedule' %}?id=" + scheduleId)
+                fetch("{% url 'custom_admin_get_schedule' %}?id=" + scheduleId)
                     .then(response => response.json())
                     .then(data => {
                         document.getElementById('delete_schedule_id').textContent = data.id;
