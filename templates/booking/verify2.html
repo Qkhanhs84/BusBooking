@@ -1,0 +1,151 @@
+{% extends 'booking/base.html' %} {% block content %}
+<div class="container my-5">
+  <div class="row">
+    <div class="col-md-6 mx-auto">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h2 class="text-center mb-0">Xác Thực Email</h2>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info">
+            <p>
+              Mã OTP đã được gửi đến email:
+              <strong>{{ passenger_email }}</strong>
+            </p>
+          </div>
+
+          <form id="otp-form">
+            <input
+              type="hidden"
+              id="passenger_name"
+              value="{{ passenger_name }}"
+            />
+            <input
+              type="hidden"
+              id="passenger_phone"
+              value="{{ passenger_phone }}"
+            />
+            <input
+              type="hidden"
+              id="passenger_email"
+              value="{{ passenger_email }}"
+            />
+            <input
+              type="hidden"
+              id="selected_seats"
+              value="{{ selected_seats }}"
+            />
+            <input type="hidden" id="trip_id" value="{{ trip_id }}" />
+
+            <div class="form-group mb-3">
+              <label for="otp">Nhập mã OTP:</label>
+              <input
+                type="text"
+                class="form-control"
+                id="otp"
+                placeholder="Nhập mã OTP 6 số"
+                required
+              />
+            </div>
+
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary">Xác Nhận</button>
+              <button
+                type="button"
+                id="resend-otp"
+                class="btn btn-outline-secondary"
+              >
+                Gửi Lại Mã
+              </button>
+            </div>
+
+            <div id="otp-message" class="mt-3"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Gửi mã OTP khi trang được tải
+    sendOtp();
+
+    // Form xác thực OTP
+    document
+      .getElementById("otp-form")
+      .addEventListener("submit", function (event) {
+        event.preventDefault();
+        verifyOtp();
+      });
+
+    // Gửi lại mã OTP
+    document
+      .getElementById("resend-otp")
+      .addEventListener("click", function () {
+        sendOtp();
+      });
+  });
+
+  function sendOtp() {
+    const email = document.getElementById("passenger_email").value;
+
+    fetch("/send-otp/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `email=${email}`,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.message) {
+          showMessage(data.message, "success");
+        } else {
+          showMessage(data.error, "danger");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        showMessage("Đã xảy ra lỗi khi gửi OTP. Vui lòng thử lại.", "danger");
+      });
+  }
+
+  function verifyOtp() {
+    const otp = document.getElementById("otp").value;
+
+    fetch("/verify_otp/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `otp=${otp}`,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.message) {
+          showMessage(data.message, "success");
+          if (data.redirect) {
+            // Chuyển hướng đến trang xác nhận thanh toán
+            window.location.href = data.redirect;
+          }
+        } else {
+          showMessage(data.error, "danger");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        showMessage(
+          "Đã xảy ra lỗi khi xác thực OTP. Vui lòng thử lại.",
+          "danger"
+        );
+      });
+  }
+
+  function showMessage(message, type) {
+    const messageElement = document.getElementById("otp-message");
+    messageElement.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+  }
+</script>
+{% endblock %}

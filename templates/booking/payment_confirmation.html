@@ -1,0 +1,229 @@
+{% extends 'booking/base.html' %} {% load static %} {% block content %}
+<div class="container mx-auto px-4 py-8">
+  <div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+      <!-- Tiêu đề -->
+      <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4">
+        <h2 class="text-2xl font-bold text-center">Xác nhận thanh toán</h2>
+      </div>
+
+      <!-- Nội dung -->
+      <div class="p-6">
+        <!-- Thông tin chuyến đi -->
+        <div class="mb-6">
+          <h3
+            class="text-xl text-blue-600 font-semibold border-b border-gray-200 pb-2 mb-3"
+          >
+            Thông tin chuyến đi
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p>
+                <strong>Chuyến:</strong> {{ trip.schedule.route.route_name}}
+              </p>
+              <p><strong>Ngày đi:</strong> {{ trip.trip_date|date:"d-m-Y" }}</p>
+            </div>
+            <div class="flex items-center mb-4">
+              <div class="text-center mr-4">
+                <p class="font-bold">{{ trip.schedule.departure_time }}</p>
+                <p class="text-xs text-gray-600">
+                  {{ trip.schedule.route.departure_station.station_name }}
+                </p>
+              </div>
+              <div class="flex flex-col items-center mx-1">
+                <div class="w-2 h-2 rounded-full bg-blue-600"></div>
+                <div class="w-0.5 h-8 bg-gray-300"></div>
+                <div class="w-2 h-2 rounded-full bg-blue-600"></div>
+              </div>
+              <div class="text-center ml-4">
+                <p class="font-bold">{{ trip.schedule.arrival_time }}</p>
+                <p class="text-xs text-gray-600">
+                  {{ trip.schedule.route.arrival_station.station_name }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Thông tin hành khách -->
+        <div class="mb-6">
+          <h3
+            class="text-xl text-blue-600 font-semibold border-b border-gray-200 pb-2 mb-3"
+          >
+            Thông tin hành khách
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p><strong>Tên: </strong> {{ passenger_name }}</p>
+              <p><strong>Số điện thoại: </strong> {{ passenger_phone }}</p>
+            </div>
+            <div>
+              <p><strong>Email:</strong> {{ passenger_email }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Thông tin ghế -->
+        <div class="mb-6">
+          <h3
+            class="text-xl text-blue-600 font-semibold border-b border-gray-200 pb-2 mb-3"
+          >
+            Ghế đã chọn
+          </h3>
+          <p><strong>Mã số ghế đã chọn: </strong> {{ seats_number }}</p>
+        </div>
+
+        <!-- Thông tin thanh toán -->
+        <div class="mb-6">
+          <h3
+            class="text-xl text-blue-600 font-semibold border-b border-gray-200 pb-2 mb-3"
+          >
+            Thông tin thanh toán
+          </h3>
+          <p><strong>Tổng cộng: </strong> {{ total_price }}.000 VND</p>
+          {% if payment_method == 'AtStation' %}
+          <!-- Thông tin vé (thanh toán tại trạm) -->
+          <div class="mt-6">
+            <div
+              class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-md"
+            >
+              <h4 class="text-lg font-bold text-green-800 mb-2">Vé của bạn</h4>
+              <p class="mb-2"><strong>Mã vé:</strong> {{ booking_code }}</p>
+              <p class="text-sm">Vui lòng xuất trình mã vé này khi lên xe.</p>
+              <p class="text-sm mt-2">
+                Chúng tôi đã gửi chi tiết vé đến email của bạn.
+              </p>
+            </div>
+          </div>
+          {% elif payment_method == 'QR' %}
+          <!-- Thông tin chuyển khoản (thanh toán QR) -->
+          <div class="mt-6">
+            <div
+              class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-md"
+            >
+              <h4 class="text-lg font-bold text-blue-800 mb-3">
+                Chi tiết chuyển khoản
+              </h4>
+              <div class="flex flex-col md:flex-row">
+                <div class="md:w-1/2">
+                  <p class="mb-1">
+                    <strong>Tên tài khoản:</strong> {{ account_name }}
+                  </p>
+                  <p class="mb-1">
+                    <strong>Số tài khoản:</strong> {{ account_number }}
+                  </p>
+                  <p class="mb-4">
+                    <strong>Ngân hàng:</strong> {{ bank_name }}
+                  </p>
+                  <p class="mb-1">
+                    <strong>Số tiền:</strong> {{ total_price }}.000 VND
+                  </p>
+                  <p class="mb-4">
+                    <strong>Nội dung CK:</strong> {{ description}}
+                  </p>
+                  <button
+                    id="complete-payment"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition-colors duration-300"
+                  >
+                    Tôi đã hoàn tất chuyển khoản
+                  </button>
+                </div>
+                <div
+                  class="md:w-1/2 flex justify-center items-center mt-4 md:mt-0"
+                >
+                  <div class="text-center">
+                    <p class="mb-2">
+                      <strong>Quét mã QR để thanh toán:</strong>
+                    </p>
+                    <img
+                      src="{% static 'images/'|add:qr_filename %}"
+                      alt="VietQR Code for Payment"
+                      class="w-49 h-49 object-cover rounded shadow-sm hover:shadow-md transition-all duration-300"
+                    />
+                    <p class="mt-2 text-xs text-gray-600">
+                      Quét bằng ứng dụng ngân hàng hỗ trợ VietQR
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Phần hiển thị mã vé sau khi thanh toán QR (hidden by default) -->
+          <div id="booking-code-section" class="mt-6 hidden">
+            <div
+              class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-md"
+            >
+              <h4 class="text-lg font-bold text-green-800 mb-2">Vé của bạn</h4>
+              <p class="mb-2">
+                <strong>Mã vé:</strong> <span id="booking-code"></span>
+              </p>
+              <p class="text-sm">
+                Vui lòng xuất trình mã vé này khi lên xe.
+              </p>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if payment_method == 'QR' %}
+<script>
+  document
+    .getElementById("complete-payment")
+    .addEventListener("click", function () {
+      // Lấy CSRF token từ cookie
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1)
+              );
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+      const csrftoken = getCookie("csrftoken");
+      fetch("{% url 'complete_payment' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "X-CSRFToken": csrftoken,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            document.getElementById("booking-code").textContent =
+              "Đã ghi nhận thanh toán. Mã vé sẽ được gửi về email sau khi admin xác nhận.";
+            document
+              .getElementById("booking-code-section")
+              .classList.remove("hidden");
+            document.getElementById("complete-payment").disabled = true;
+            document.getElementById("complete-payment").textContent =
+              "Đã xác nhận thanh toán";
+            document
+              .getElementById("complete-payment")
+              .classList.add("bg-green-600");
+            document
+              .getElementById("complete-payment")
+              .classList.remove("bg-blue-600");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          alert(
+            "There was an error processing your payment. Please try again."
+          );
+        });
+    });
+</script>
+{% endif %} {% endblock %}
