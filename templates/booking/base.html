@@ -1,136 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% comment %} <meta name="csrf-token" content="{{ csrf_token }}"> {% endcomment %}
-    <title>{% block title %}BUSBOOKING - Bus Ticket Booking{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {% comment %}
+    <meta name="csrf-token" content="{{ csrf_token }}" />
+    {% endcomment %}
+    <title>
+      {% block title %}BUSBOOKING - Bus Ticket Booking{% endblock %}
+    </title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-</head>
-<body class="flex flex-col min-h-screen bg-gray-100">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+  </head>
+  <body class="flex flex-col min-h-screen bg-gray-100">
     <!-- Header -->
     <header class="bg-gradient-to-r from-blue-600 to-blue-800 shadow-md">
-        <div class="container mx-auto px-4">
-            <div class="flex justify-between items-center h-16">
-                <a href="{% url 'home' %}" class="flex items-center">
-                    <div class="w-10 h-10 mr-2 bg-white rounded-full flex items-center justify-center">
-                        <span class="font-bold text-blue-600">VBB</span>
-                    </div>
-                    <span class="text-white font-bold text-xl">BUSBOOKING</span>
-                </a>
-                
-                <nav class="hidden md:flex space-x-1">
-                    <a href="{% url 'home' %}" class="px-4 py-2 text-white hover:text-gray-200 font-medium">Trang chủ</a>
-                    <a href="{% url 'about' %}" class="px-4 py-2 text-white hover:text-gray-200 font-medium">Giới thiệu</a>
-                    <a href="{% url 'services' %}" class="px-4 py-2 text-white hover:text-gray-200 font-medium">Dịch vụ</a>
-                    <a href="{% url 'search' %}" class="px-4 py-2 text-white hover:text-gray-200 font-medium">Tra cứu</a>
-                    <a href="{% url 'news' %}" class="px-4 py-2 text-white hover:text-gray-200 font-medium">Tin tức</a>
-                    <a href="{% url 'contact' %}" class="px-4 py-2 text-white hover:text-gray-200 font-medium">Liên hệ</a>
-                </nav>
-                
-                <div class="md:hidden">
-                    <button class="text-white p-2">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                </div>
+      <div class="container mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+          <a href="{% url 'home' %}" class="flex items-center">
+            <div
+              class="w-10 h-10 mr-2 bg-white rounded-full flex items-center justify-center"
+            >
+              <span class="font-bold text-blue-600">VBB</span>
             </div>
+            <span class="text-white font-bold text-xl">BUSBOOKING</span>
+          </a>
+
+          <nav class="hidden md:flex space-x-1">
+            <a
+              href="{% url 'home' %}"
+              class="px-4 py-2 text-white hover:text-gray-200 font-medium"
+              >Trang chủ</a
+            >
+            <a
+              href="{% url 'about' %}"
+              class="px-4 py-2 text-white hover:text-gray-200 font-medium"
+              >Giới thiệu</a
+            >
+            <a
+              href="{% url 'services' %}"
+              class="px-4 py-2 text-white hover:text-gray-200 font-medium"
+              >Dịch vụ</a
+            >
+            <a
+              href="{% url 'search' %}"
+              class="px-4 py-2 text-white hover:text-gray-200 font-medium"
+              >Tra cứu</a
+            >
+            <a
+              href="{% url 'ticket_lookup' %}"
+              class="px-4 py-2 text-white hover:text-gray-200 font-medium"
+              >Tra cứu vé</a
+            >
+            <a
+              href="{% url 'news' %}"
+              class="px-4 py-2 text-white hover:text-gray-200 font-medium"
+              >Tin tức</a
+            >
+            <a
+              href="{% url 'contact' %}"
+              class="px-4 py-2 text-white hover:text-gray-200 font-medium"
+              >Liên hệ</a
+            >
+          </nav>
+
+          <div class="md:hidden">
+            <button class="text-white p-2">
+              <i class="fas fa-bars"></i>
+            </button>
+          </div>
         </div>
+      </div>
     </header>
 
     <!-- Main Content -->
-    <main class="flex-grow">
-        {% block content %}{% endblock %}
-    </main>
+    <main class="flex-grow">{% block content %}{% endblock %}</main>
 
     <!-- Footer -->
     <footer class="bg-white mt-auto">
-        <div class="container mx-auto px-4 py-8">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Company Info -->
-                <div>
-                    <div class="flex items-center mb-4">
-                        <div class="w-12 h-12 mr-2 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span class="font-bold text-blue-600">VBB</span>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-xl">BUSBOOKING</h3>
-                            <p class="text-sm text-gray-600">CÔNG TY CP THƯƠNG MẠI VÀ DỊCH VỤ BUSBOOKING</p>
-                        </div>
-                    </div>
-                    <p class="text-sm mb-2">GPKD số 2900885398 do Sở KH và ĐT Nghệ An cấp ngày 11/04/2008</p>
-                    <p class="text-sm">GPKDVT bằng xe ô tô số 356/NA do Sở Giao thông vận tải Nghệ An cấp ngày 10/08/2018</p>
-                </div>
-                
-                <!-- Contact Info -->
-                <div>
-                    <h3 class="font-bold text-lg mb-4">Thông tin liên hệ</h3>
-                    <p class="flex items-start mb-3">
-                        <i class="fas fa-map-marker-alt w-5 h-5 mr-2 text-blue-600 flex-shrink-0 mt-1"></i>
-                        <span>Số 83, đường Tân Đà, Phường Quán Bàu, Thành phố Vinh, Nghệ An</span>
-                    </p>
-                    <p class="flex items-center mb-3">
-                        <i class="fas fa-map-marker-alt w-5 h-5 mr-2 text-blue-600"></i>
-                        <span>VP Bến xe Trung tâm Đà Nẵng: 185 Tôn Đức Thắng, Liên Chiểu, Đà Nẵng</span>
-                    </p>
-                    <p class="flex items-center mb-3">
-                        <i class="fas fa-phone w-5 h-5 mr-2 text-blue-600"></i>
-                        <span>Hotline: 1900.5226 - 0942.26.26.26</span>
-                    </p>
-                    <p class="flex items-center">
-                        <i class="fas fa-envelope w-5 h-5 mr-2 text-blue-600"></i>
-                        <span>haihoanggia866886@gmail.com</span>
-                    </p>
-                </div>
-                
-                <!-- Service Policies -->
-                <div>
-                    <h3 class="font-bold text-lg mb-4">Chính sách dịch vụ</h3>
-                    <ul class="space-y-2">
-                        <li>
-                            <a href="{% url 'search' %}" class="text-sm text-blue-600 hover:underline">
-                                Tra cứu vé
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="text-sm text-blue-600 hover:underline">
-                                Tra cứu đơn hàng
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="text-sm text-blue-600 hover:underline">
-                                Chính sách vận chuyển
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="text-sm text-blue-600 hover:underline">
-                                Chính sách thanh toán
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="text-sm text-blue-600 hover:underline">
-                                Chính sách kiểm hàng, hủy vé/đổi trả
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#" class="text-sm text-blue-600 hover:underline">
-                                Chính sách bảo mật thông tin
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+      <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Company Info -->
+          <div>
+            <div class="flex items-center mb-4">
+              <div
+                class="w-12 h-12 mr-2 bg-blue-100 rounded-full flex items-center justify-center"
+              >
+                <span class="font-bold text-blue-600">VBB</span>
+              </div>
+              <div>
+                <h3 class="font-bold text-xl">BUSBOOKING</h3>
+                <p class="text-sm text-gray-600">
+                  CÔNG TY CP THƯƠNG MẠI VÀ DỊCH VỤ BUSBOOKING
+                </p>
+              </div>
             </div>
-            
-            <div class="border-t mt-8 pt-6 text-center text-sm text-gray-600">
-                <p>Copyright © 2022-{% now "Y" %} - All Rights Reserved</p>
-            </div>
+            <p class="text-sm mb-2">
+              GPKD số 2900885398 do Sở KH và ĐT Nghệ An cấp ngày 11/04/2008
+            </p>
+            <p class="text-sm">
+              GPKDVT bằng xe ô tô số 356/NA do Sở Giao thông vận tải Nghệ An cấp
+              ngày 10/08/2018
+            </p>
+          </div>
+
+          <!-- Contact Info -->
+          <div>
+            <h3 class="font-bold text-lg mb-4">Thông tin liên hệ</h3>
+            <p class="flex items-start mb-3">
+              <i
+                class="fas fa-map-marker-alt w-5 h-5 mr-2 text-blue-600 flex-shrink-0 mt-1"
+              ></i>
+              <span
+                >Số 83, đường Tân Đà, Phường Quán Bàu, Thành phố Vinh, Nghệ
+                An</span
+              >
+            </p>
+            <p class="flex items-center mb-3">
+              <i class="fas fa-map-marker-alt w-5 h-5 mr-2 text-blue-600"></i>
+              <span
+                >VP Bến xe Trung tâm Đà Nẵng: 185 Tôn Đức Thắng, Liên Chiểu, Đà
+                Nẵng</span
+              >
+            </p>
+            <p class="flex items-center mb-3">
+              <i class="fas fa-phone w-5 h-5 mr-2 text-blue-600"></i>
+              <span>Hotline: 1900.5226 - 0942.26.26.26</span>
+            </p>
+            <p class="flex items-center">
+              <i class="fas fa-envelope w-5 h-5 mr-2 text-blue-600"></i>
+              <span>haihoanggia866886@gmail.com</span>
+            </p>
+          </div>
+
+          <!-- Service Policies -->
+          <div>
+            <h3 class="font-bold text-lg mb-4">Chính sách dịch vụ</h3>
+            <ul class="space-y-2">
+              <li>
+                <a
+                  href="{% url 'search' %}"
+                  class="text-sm text-blue-600 hover:underline"
+                >
+                  Tra cứu vé
+                </a>
+              </li>
+              <li>
+                <a
+                  href="{% url 'ticket_lookup' %}"
+                  class="text-sm text-blue-600 hover:underline"
+                >
+                  Tra cứu đơn hàng
+                </a>
+              </li>
+              <li>
+                <a href="#" class="text-sm text-blue-600 hover:underline">
+                  Chính sách vận chuyển
+                </a>
+              </li>
+              <li>
+                <a href="#" class="text-sm text-blue-600 hover:underline">
+                  Chính sách thanh toán
+                </a>
+              </li>
+              <li>
+                <a href="#" class="text-sm text-blue-600 hover:underline">
+                  Chính sách kiểm hàng, hủy vé/đổi trả
+                </a>
+              </li>
+              <li>
+                <a href="#" class="text-sm text-blue-600 hover:underline">
+                  Chính sách bảo mật thông tin
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
+
+        <div class="border-t mt-8 pt-6 text-center text-sm text-gray-600">
+          <p>Copyright © 2022-{% now "Y" %} - All Rights Reserved</p>
+        </div>
+      </div>
     </footer>
 
     {% block scripts %}{% endblock %}
-</body>
+  </body>
 </html>
-

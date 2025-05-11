@@ -23,33 +23,11 @@ def custom_admin_login(request):
         
         if user is not None and is_admin(user):
             login(request, user)
-            return redirect('custom_admin_dashboard')
+            return redirect('custom_admin_statistics')
         else:
-            return render(request, 'booking/custom_admin/login.html', {'error_message': 'Invalid credentials or insufficient permissions'})
+            return render(request, 'admin/login.html', {'error_message': 'Invalid credentials or insufficient permissions'})
     
     return render(request, 'admin/login.html')
-
-@login_required
-@user_passes_test(is_admin)
-def custom_admin_dashboard(request):
-    """Dashboard trang admin"""
-    # Lấy thông tin tổng quan
-    total_bookings = Booking.objects.count()
-    pending_payments = Booking.objects.filter(payment_method='QR', payment_status='Pending').count()
-    today = timezone.now().date()
-    total_trips_today = Trip.objects.filter(trip_date=today).count()
-    
-    # Lấy các đơn đặt vé gần đây
-    recent_bookings = Booking.objects.all().order_by('-booking_time')[:10]
-    
-    context = {
-        'total_bookings': total_bookings,
-        'pending_payments': pending_payments,
-        'total_trips_today': total_trips_today,
-        'recent_bookings': recent_bookings,
-    }
-    
-    return render(request, 'booking/custom_admin/dashboard.html', context)
 
 @login_required
 @user_passes_test(is_admin)
@@ -238,7 +216,7 @@ def admin_add_bus(request):
             # Check if license plate already exists
             if Bus.objects.filter(license_plate=license_plate).exists():
                 messages.error(request, 'Biển số xe này đã tồn tại!')
-                return redirect('admin_schedules')
+                return redirect('custom_admin_schedules')
             
             # Create new bus
             bus = Bus.objects.create(

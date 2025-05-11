@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="vi">
 
@@ -7,7 +8,11 @@
     <title>{% block title %}BusBooking Admin{% endblock %}</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
     <style>
         :root {
             --sidebar-bg: #1a2234;
@@ -541,10 +546,6 @@
         <div class="header">
             <h1>{% block page_title %}Quản lý hệ thống đặt vé xe{% endblock %}</h1>
             <div class="d-flex">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Tìm kiếm...">
-                </div>
                 <div class="user-info">
                     <div class="user-avatar">AD</div>
                 </div>

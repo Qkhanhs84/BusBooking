@@ -1,0 +1,168 @@
+{% extends 'booking/base.html' %} {% block title %}Thông tin vé - BUSBOOKING{%endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold mb-6">Thông tin vé</h1>
+
+  <div class="max-w-3xl mx-auto">
+    {% if messages %}
+    <div class="mb-6">
+      {% for message in messages %}
+      <div
+        class="p-4 mb-4 rounded {% if message.tags == 'success' %}bg-green-100 text-green-700 border border-green-400{% endif %} {% if message.tags == 'error' %}bg-red-100 text-red-700 border border-red-400{% endif %} {% if message.tags == 'info' %}bg-blue-100 text-blue-700 border border-blue-400{% endif %} {% if message.tags == 'warning' %}bg-yellow-100 text-yellow-700 border border-yellow-400{% endif %}"
+      >
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <div class="bg-blue-600 px-6 py-4">
+        <h2 class="text-xl font-bold text-white">
+          Mã đặt vé: {{ booking.booking_code }}
+        </h2>
+      </div>
+
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <h3 class="text-lg font-bold mb-3">Thông tin hành khách</h3>
+            <div class="space-y-2">
+              <p>
+                <span class="font-medium">Họ và tên:</span> {{ booking.passenger_name }}
+              </p>
+              <p>
+                <span class="font-medium">Email:</span> {{booking.passenger_email }}
+              </p>
+              <p>
+                <span class="font-medium">Số điện thoại:</span> {{booking.passenger_phone }}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-bold mb-3">Trạng thái đặt vé</h3>
+            <div class="space-y-2">
+              <p>
+                <span class="font-medium">Trạng thái đặt vé:</span>
+                <span
+                  class="px-2 py-1 rounded text-xs font-medium {% if booking.booking_status == 'Pending' %}bg-yellow-100 text-yellow-800{% endif %} {% if booking.booking_status == 'Completed' %}bg-green-100 text-green-800{% endif %} {% if booking.booking_status == 'Cancelled' %}bg-red-100 text-red-800{% endif %}"
+                >
+                  {{ booking.get_booking_status_display }}
+                </span>
+              </p>
+              <p>
+                <span class="font-medium">Trạng thái thanh toán:</span>
+                <span
+                  class="px-2 py-1 rounded text-xs font-medium {% if booking.payment_status == 'Pending' %}bg-yellow-100 text-yellow-800{% endif %} {% if booking.payment_status == 'Paid' %}bg-green-100 text-green-800{% endif %} {% if booking.payment_status == 'Failed' %}bg-red-100 text-red-800{% endif %}"
+                >
+                  {{ booking.get_payment_status_display }}
+                </span>
+              </p>
+              <p>
+                <span class="font-medium">Phương thức thanh toán:</span> {{booking.get_payment_method_display }}
+              </p>
+              <p>
+                <span class="font-medium">Ngày đặt vé:</span> {{booking.booking_time|date:"d/m/Y H:i" }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-6">
+          <h3 class="text-lg font-bold mb-3">Thông tin chuyến xe</h3>
+          <div class="flex items-center mb-4">
+            <div
+              class="w-12 h-12 mr-3 bg-blue-100 rounded-full flex items-center justify-center"
+            >
+              <span class="font-bold text-blue-600">VBB</span>
+            </div>
+            <div>
+              <h3 class="font-bold">
+                {{ booking.trip.schedule.route.route_name }}
+              </h3>
+              <p class="text-sm text-gray-600">
+                {{ booking.trip.schedule.bus.get_bus_type_display }} - {{booking.trip.schedule.bus.license_plate }}
+              </p>
+            </div>
+          </div>
+
+          <div class="border-t border-b py-4 mb-4">
+            <div class="flex items-center mb-3">
+              <i class="fas fa-calendar w-5 h-5 mr-2 text-gray-600"></i>
+              <span>Ngày đi: {{ booking.trip.trip_date|date:"d/m/Y" }}</span>
+            </div>
+
+            <div class="flex items-center mb-4">
+              <div class="text-center mr-4">
+                <p class="font-bold">
+                  {{ booking.trip.schedule.departure_time }}
+                </p>
+                <p class="text-xs text-gray-600">
+                  {{ booking.trip.schedule.route.departure_station.station_name }}
+                </p>
+              </div>
+              <div class="flex flex-col items-center mx-1">
+                <div class="w-2 h-2 rounded-full bg-blue-600"></div>
+                <div class="w-0.5 h-8 bg-gray-300"></div>
+                <div class="w-2 h-2 rounded-full bg-blue-600"></div>
+              </div>
+              <div class="text-center ml-4">
+                <p class="font-bold">
+                  {{ booking.trip.schedule.arrival_time }}
+                </p>
+                <p class="text-xs text-gray-600">
+                  {{ booking.trip.schedule.route.arrival_station.station_name }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <h3 class="font-bold mb-2">Thông tin ghế:</h3>
+            <div class="flex flex-wrap gap-2">
+              {% for booking_seat in booking_seats %}
+              <div class="bg-gray-100 px-3 py-1 rounded">
+                {{ booking_seat.seat.seat_number }}
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="border-t pt-4">
+            <div class="flex justify-between font-bold mb-2">
+              <span>Tổng tiền:</span>
+              <span>{{ booking.total_price }}.000 VNĐ</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center">
+          <a
+            href="{% url 'ticket_lookup' %}"
+            class="text-blue-600 hover:underline"
+          >
+            <i class="fas fa-arrow-left mr-1"></i> Quay lại
+          </a>
+
+          {% if not is_departed and booking.booking_status != 'Cancelled' %}
+          <form
+            method="POST"
+            action="{% url 'cancel_ticket' booking.booking_code %}"
+            onsubmit="return confirm('Bạn có chắc chắn muốn hủy vé này?');"
+          >
+            {% csrf_token %}
+            <button
+              type="submit"
+              class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+            >
+              <i class="fas fa-times-circle mr-1"></i> Hủy vé
+            </button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

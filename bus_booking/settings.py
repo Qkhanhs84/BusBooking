@@ -101,6 +101,13 @@ STATICFILES_DIRS = [
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Cấu hình URL đăng nhập cho @login_required decorator
+LOGIN_URL = '/custom-admin/'
+
+# Cấu hình Session
+SESSION_COOKIE_AGE = 86400  # 1 ngày = 86400 giây
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # False = session hết hạn theo SESSION_COOKIE_AGE, True = session hết hạn khi đóng trình duyệt
+
 # Cấu hình Django gửi email qua Gmail
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"  # SMTP server của Gmail
