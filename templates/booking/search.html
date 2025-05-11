@@ -80,7 +80,7 @@
                         type="submit" 
                         class="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors flex items-center justify-center"
                     >
-                        <i class="fas fa-search w-5 h-5 mr-2"></i>
+                        <i class="fas fa-search w-5 h-5 mr-2 "></i>
                         Tìm kiếm
                     </button>
                 </div>
@@ -102,7 +102,7 @@
     </div>
 
     <div class="space-y-4">
-        {% for trip in trips %}
+        {% for trip_info in trips_with_status %}
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
             <div class="p-4 border-b">
                 <div class="flex justify-between items-center">
@@ -111,18 +111,18 @@
                             <span class="font-bold text-blue-600">VBB</span>
                         </div>
                         <div>
-                            <h3 class="font-bold">{{ trip.schedule.route.route_name }}</h3>
+                            <h3 class="font-bold">{{ trip_info.trip.schedule.route.route_name }}</h3>
                             <p class="text-sm text-gray-600">
-                                {{ trip.schedule.bus.get_bus_type_display }} - {{ trip.schedule.bus.total_seats }} chỗ
+                                {{ trip_info.trip.schedule.bus.get_bus_type_display }} - {{ trip_info.trip.schedule.bus.total_seats }} chỗ
                             </p>
                         </div>
                     </div>
                     <div class="text-right">
                         <p class="font-bold text-lg text-blue-600">
-                            {{ trip.compute_price }}.000 VNĐ
+                            {{ trip_info.trip.compute_price }}.000 VNĐ
                         </p>
                         <p class="text-sm text-gray-600">
-                            {{ trip.available_seats }} chỗ trống
+                            {{ trip_info.trip.get_available_seats }} chỗ trống
                         </p>
                     </div>
                 </div>
@@ -132,9 +132,9 @@
                 <div class="flex items-center mb-4 md:mb-0">
                     <div class="text-center mr-6">
                         <p class="font-bold text-lg">
-                            {{ trip.schedule.departure_time }}
+                            {{ trip_info.trip.schedule.departure_time }}
                         </p>
-                        <p class="text-sm text-gray-600">{{ trip.schedule.route.departure_station.station_name }}</p>
+                        <p class="text-sm text-gray-600">{{ trip_info.trip.schedule.route.departure_station.station_name }}</p>
                     </div>
                     <div class="flex flex-col items-center mx-2">
                         <div class="w-2 h-2 rounded-full bg-blue-600"></div>
@@ -142,24 +142,32 @@
                         <div class="w-2 h-2 rounded-full bg-blue-600"></div>
                     </div>
                     <div class="text-center ml-6">
-                        <p class="font-bold text-lg">{{ trip.schedule.arrival_time }}</p>
-                        <p class="text-sm text-gray-600">{{ trip.schedule.route.arrival_station.station_name }}</p>
+                        <p class="font-bold text-lg">{{ trip_info.trip.schedule.arrival_time }}</p>
+                        <p class="text-sm text-gray-600">{{ trip_info.trip.schedule.route.arrival_station.station_name }}</p>
                     </div>
                 </div>
 
                 <div class="flex items-center">
                     <i class="fas fa-clock w-5 h-5 mr-2 text-gray-600"></i>
-                    <span class="text-gray-600 mr-6">{{ trip.schedule.route.compute_time }}</span>
+                    <span class="text-gray-600 mr-6">{{ trip_info.trip.schedule.route.compute_time }}</span>
                     <i class="fas fa-road w-5 h-5 mr-2 text-gray-600"></i>
-                    <span class="text-gray-600 mr-6">{{ trip.schedule.route.distance_km |floatformat:0  }} km</span>
+                    <span class="text-gray-600 mr-6">{{ trip_info.trip.schedule.route.distance_km |floatformat:0  }} km</span>
                     <form action="{% url 'booking' %}" method="GET">
                         {% csrf_token %}
-                        <input type="hidden" name="id" value="{{ trip.id }}">
+                        <input type="hidden" name="id" value="{{ trip_info.trip.id }}">
                         
-                        
-                        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
-                            Chọn chuyến
-                        </button>
+                        {% if trip_info.is_departed %}
+                            <!-- Nút "Đã chạy" màu vàng và vô hiệu hóa -->
+                            <button type="button" disabled 
+                                class="bg-yellow-500 text-white px-4 py-2 rounded opacity-70 cursor-not-allowed">
+                                Đã khời hành
+                            </button>
+                        {% else %}
+                            <!-- Nút "Chọn chuyến" bình thường -->
+                            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors">
+                                Chọn chuyến
+                            </button>
+                        {% endif %}
                     </form>
                 </div>
             </div>
