@@ -16,6 +16,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
