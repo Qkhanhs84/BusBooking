@@ -27,7 +27,7 @@ def custom_admin_login(request):
         else:
             return render(request, 'custom-admin/login.html', {'error_message': 'Invalid credentials or insufficient permissions'})
     
-    return render(request, 'admin/login.html')
+    return render(request, 'custom-admin/login.html')
 
 @login_required
 @user_passes_test(is_admin)
@@ -247,9 +247,9 @@ def admin_add_bus(request):
         except Exception as e:
             messages.error(request, f'Lỗi: {str(e)}')
         
-        return redirect('admin_schedules')
+        return redirect('custom_admin_schedules')
     
-    return redirect('admin_schedules')
+    return redirect('custom_admin_schedules')
 @login_required
 @user_passes_test(is_admin)
 def admin_add_schedule(request):
@@ -282,9 +282,9 @@ def admin_add_schedule(request):
         except Exception as e:
             messages.error(request, f'Lỗi: {str(e)}')
         
-        return redirect('admin_schedules')
+        return redirect('custom_admin_schedules')
     
-    return redirect('admin_schedules')
+    return redirect('custom_admin_schedules')
 @login_required
 @user_passes_test(is_admin)
 def admin_edit_schedule(request):
@@ -316,9 +316,9 @@ def admin_edit_schedule(request):
         except Exception as e:
             messages.error(request, f'Lỗi: {str(e)}')
         
-        return redirect('admin_schedules')
+        return redirect('custom_admin_schedules')
     
-    return redirect('admin_schedules')
+    return redirect('custom_admin_schedules')
 @login_required
 @user_passes_test(is_admin)
 def admin_delete_schedule(request):
@@ -331,7 +331,7 @@ def admin_delete_schedule(request):
             # Check if there are any trips for this schedule
             if Trip.objects.filter(schedule=schedule).exists():
                 messages.error(request, 'Không thể xóa lịch trình này vì đã có chuyến xe được tạo từ lịch trình này!')
-                return redirect('admin_schedules')
+                return redirect('custom_admin_schedules')
             
             # Delete schedule
             schedule.delete()
@@ -342,9 +342,9 @@ def admin_delete_schedule(request):
         except Exception as e:
             messages.error(request, f'Lỗi: {str(e)}')
         
-        return redirect('admin_schedules')
+        return redirect('custom_admin_schedules')
     
-    return redirect('admin_schedules')
+    return redirect('custom_admin_schedules')
 @login_required
 @user_passes_test(is_admin)
 def admin_add_route(request):
@@ -378,9 +378,9 @@ def admin_add_route(request):
         except Exception as e:
             messages.error(request, f'Lỗi: {str(e)}')
         
-        return redirect('admin_schedules')
+        return redirect('custom_admin_schedules')
     
-    return redirect('admin_schedules')
+    return redirect('custom_admin_schedules')
 @login_required
 @user_passes_test(is_admin)
 def admin_get_schedule(request):
