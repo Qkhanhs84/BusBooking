@@ -25,7 +25,7 @@
             </p>
         </div>
         <div class="h-80 md:h-96 bg-gray-200 rounded-lg flex items-center justify-center">
-            <span class="text-2xl font-bold text-gray-500">Hải Hoàng Gia</span>
+            <img src= "/static/images/about/about.jpg" alt="Xe Hải Hoàng Gia" class="w-full h-full object-cover rounded-lg">
         </div>
     </div>
     
@@ -90,7 +90,7 @@
             {% for i in "123"|make_list %}
             <div class="bg-white rounded-lg shadow-md overflow-hidden">
                 <div class="h-48 bg-gray-200 flex items-center justify-center">
-                    <span class="text-2xl font-bold text-gray-500">Xe {{ forloop.counter }}</span>
+                    <img src= "/static/images/about/about_{{forloop.counter}}.jpg" alt="Xe {{ forloop.counter }}" class="w-full h-full object-cover">
                 </div>
                 <div class="p-4">
                     <h3 class="font-bold text-lg mb-2">Giường nằm cao cấp</h3>
