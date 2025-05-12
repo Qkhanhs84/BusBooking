@@ -25,7 +25,7 @@ def custom_admin_login(request):
             login(request, user)
             return redirect('custom_admin_statistics')
         else:
-            return render(request, 'admin/login.html', {'error_message': 'Invalid credentials or insufficient permissions'})
+            return render(request, 'custom-admin/login.html', {'error_message': 'Invalid credentials or insufficient permissions'})
     
     return render(request, 'admin/login.html')
 
@@ -63,7 +63,7 @@ def custom_admin_bookings(request):
         'payment_method': payment_method
     }
     
-    return render(request, 'admin/admin-bookings.html', context)
+    return render(request, 'custom-admin/admin-bookings.html', context)
 
 @login_required
 @user_passes_test(is_admin)
@@ -165,7 +165,7 @@ def admin_statistics(request):
         'trips': trip_stats,
     }
     
-    return render(request, 'admin/admin-statistics.html', context)
+    return render(request, 'custom-admin/admin-statistics.html', context)
 
 
 # Thêm các hàm này vào file views.py hiện có
@@ -204,7 +204,7 @@ def admin_schedules(request):
         'bus_types': bus_types,
     }
     
-    return render(request, 'admin/admin-schedules.html', context)
+    return render(request, 'custom-admin/admin-schedules.html', context)
 @login_required
 @user_passes_test(is_admin)
 # Thêm hàm để tạo xe mới
