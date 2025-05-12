@@ -34,15 +34,16 @@
         body {
             display: flex;
             background-color: #f9fafb;
+            height:100vh;
         }
 
         /* Sidebar */
         .sidebar {
             width: var(--sidebar-width);
-            height: 100vh;
+            min-width: 200px;
             background-color: var(--sidebar-bg);
             color: white;
-            position: fixed;
+            position: relative;
             left: 0;
             top: 0;
             overflow-y: auto;
@@ -81,11 +82,12 @@
         /* Main content */
         .main-content {
             flex: 1;
-            margin-left: var(--sidebar-width);
             padding: 1.5rem;
             min-height: 100vh;
         }
-
+        .min-h-screen-admin {
+            min-height: calc(100vh - 102px);
+        }
         .header {
             display: flex;
             justify-content: space-between;
@@ -507,12 +509,20 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 1rem;
         }
+        .main-section {
+            width:100%;
+            display:flex;
+            position:relative;
+            align-items: stretch;
+            height: fit-content;
+        }
     </style>
 </head>
 
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="main-section">
+        <!-- Sidebar -->
+        <div class="sidebar">
         <div class="sidebar-header">
             <i class="fas fa-bus"></i>
             <h1>BusBooking Admin</h1>
@@ -539,10 +549,10 @@
                 </li>
             </ul>
         </nav>
-    </div>
+        </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
+        <!-- Main Content -->
+        <div class="main-content">
         <div class="header">
             <h1>{% block page_title %}Quản lý hệ thống đặt vé xe{% endblock %}</h1>
             <div class="d-flex">
@@ -553,6 +563,7 @@
         </div>
 
         {% block content %}{% endblock %}
+        </div>
     </div>
 
     {% block modals %}{% endblock %}

@@ -4,7 +4,7 @@
 {% block page_title %}Quản lý đặt vé{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-100">
+<div class="min-h-screen-admin bg-gray-100">
    
 
     <div class="container mx-auto px-4 py-6">
@@ -121,9 +121,9 @@
                             <div>{{ booking.trip.trip_date|date:"d-m-Y" }}</div>
                             <div class="text-xs text-gray-500">{{ booking.trip.schedule.departure_time }}</div>
                         </td>
-                        <td class="py-4 px-4 whitespace-nowrap">
+                        <td class="py-4 px-4 whitespace-wrap">
                             {% with seats=booking.booking_seats.all %}
-                            <span class="text-sm">
+                            <span class="text-sm ">
                                 {% for booking_seat in seats %}
                                 {{ booking_seat.seat.seat_number }}{% if not forloop.last %}, {% endif %}
                                 {% endfor %}
