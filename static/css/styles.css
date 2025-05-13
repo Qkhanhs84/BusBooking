@@ -68,7 +68,7 @@ body {
 }
 
 .bg-white.rounded-lg.shadow-md:hover {
-  box-shadow: 0 10px 15px rgba(2, 137, 247, 0.1);
+  box-shadow: 0 10px 15px rgba(2, 137, 247, 0.1); 
 }
 
 /* Seat selection styles */
